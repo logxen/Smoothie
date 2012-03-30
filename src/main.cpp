@@ -7,6 +7,7 @@
 
 #include "libs/Kernel.h"
 #include "modules/tools/laser/Laser.h"
+#include "modules/tools/laser_engrave/LaserEngrave.h"
 #include "modules/tools/extruder/Extruder.h"
 #include "modules/tools/temperaturecontrol/TemperatureControlPool.h"
 #include "modules/robot/Player.h"
@@ -29,6 +30,7 @@ int main() {
     kernel->serial->printf("Smoothie ( grbl port ) version 0.6 \r\nstart\r\n");
 
     kernel->add_module( new Laser(p21) );
+    kernel->add_module( new LaserEngrave(p21) );
     kernel->add_module( new Extruder(p26,p27) );
     kernel->add_module( new SimpleShell() );
     kernel->add_module( new TemperatureControlPool() );

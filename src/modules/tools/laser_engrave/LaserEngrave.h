@@ -15,6 +15,7 @@
 
 #define laser_engrave_module_enable_checksum 00020 
 #define laser_engrave_command_checksum       41059
+#define laser_width_checksum                 34714
 
 class LaserEngrave : public Module{
     public:
@@ -32,6 +33,8 @@ class LaserEngrave : public Module{
 
         PwmOut laser_pin;    // PWM output to regulate the laser power
         bool   laser_on;     // Laser status
+
+        bool paused;
 };
 
 

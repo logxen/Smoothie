@@ -17,6 +17,7 @@ using std::string;
 class Gcode {
     public:
         Gcode();
+        Gcode(string cmd);
         bool has_letter( char letter );
         double get_value ( char letter );
 

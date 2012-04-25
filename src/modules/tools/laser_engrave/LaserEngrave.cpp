@@ -5,6 +5,7 @@
       You should have received a copy of the GNU General Public License along with Smoothie. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <sstream>
 #include "mbed.h"
 #include "libs/Module.h"
 #include "libs/Kernel.h"
@@ -31,6 +32,8 @@ void LaserEngrave::on_module_loaded() {
     this->register_for_event(ON_BLOCK_END);
 
     // Start values
+    this->current_scan_line = 0;
+    this->target_scan_line = 0;
     this->start_position = 0;
     this->target_position = 0;
     this->current_position = 0;
@@ -50,6 +53,7 @@ void LaserEngrave::on_module_loaded() {
 // Get config
 void LaserEngrave::on_config_reload(void* argument){
     this->laser_width = this->kernel->config->value(laser_width_checksum)->by_default(0.25)->as_number();
+    this->default_engrave_feedrate = this->kernel->config->value(laser_engrave_feedrate_checksum)->by_default(1200)->as_number();
 //    this->microseconds_per_step_pulse = this->kernel->config->value(microseconds_per_step_pulse_ckeckusm)->by_default(5)->as_number();
 //    this->steps_per_millimeter        = this->kernel->config->value(steps_per_millimeter_checksum       )->by_default(1)->as_number();
 //    this->feed_rate                   = this->kernel->config->value(default_feed_rate_checksum          )->by_default(1)->as_number();
@@ -71,15 +75,70 @@ void LaserEngrave::on_console_line_received( void* argument ){
 }
 
 void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* stream ){
-
     // Get filename
     string filename          = shift_parameter( parameters );
+
+    // Read fileheader
+    // ** fake fileheader system **
+    unsigned short image_width = 10;
+    unsigned short image_height = 10;
+    unsigned short image_bpp = 8;
 
     // Get other parameters
     Gcode gcode = Gcode();
     gcode.command = parameters;
     gcode.stream = stream;
 
+    if(gcode.has_letter('I')) {
+        engrave_x = gcode.get_value('I');
+    } else {
+        engrave_x = image_width;
+    }
+    if(gcode.has_letter('J')) {
+        engrave_y = gcode.get_value('J');
+    } else {
+        engrave_y = image_height;
+    }
+    if(gcode.has_letter('F')) {
+        engrave_feedrate = gcode.get_value('F');
+    } else {
+        engrave_feedrate = default_engrave_feedrate; // if feedrate not specified, use value from config
+    }
+
+    double target_scan_line = floor(engrave_y / laser_width);
+    double ppsl = target_scan_line / image_height;
+    stringstream ss;
+    ss.str(" F"); ss << engrave_feedrate;
+    string feedrate = ss.str();
+    ss.str("G0 Y"); ss << engrave_y << feedrate;
+    string g_scan_forward = ss.str();
+    ss.str("G0 Y"); ss << engrave_y * -1 << feedrate;
+    string g_scan_back = ss.str();
+    ss.str("G0 X"); ss << engrave_x << feedrate;
+    string g_scan_x_forward = ss.str();
+    ss.str("G0 X"); ss << engrave_x * -1 << feedrate;
+    string g_scan_x_back = ss.str();
+    ss.str("G0 X"); ss << copysign(engrave_x,laser_width);
+    string g_advance_line;
+
+    printf("Engraving %s at %f mm/min", filename.c_str(), engrave_feedrate);
+    // begin by setting the machine into relative mode
+    //TODO: need to cache current mode
+    send_gcode(new Gcode("G91") );
+    // trace a box around the area to be engraved with the laser off (G0) for professionalism
+    send_gcode(new Gcode(g_scan_forward) );
+    send_gcode(new Gcode(g_scan_x_forward) );
+    send_gcode(new Gcode(g_scan_back) );
+    send_gcode(new Gcode(g_scan_x_back) );
+    // begin engraving
+    current_pixel_row = 0;
+    for (int sl=0;sl<target_scan_line;sl++) {
+        current_scan_line = sl;
+        current_pixel_row = floor(sl * ppsl);
+        send_gcode(new Gcode( (sl % 2) == 0 ? g_scan_forward : g_scan_back) );
+        send_gcode(new Gcode(g_advance_line) );
+    }
+/*
     // Open file
     FILE *lp = fopen(filename.c_str(), "r");
     string buffer;
@@ -98,8 +157,13 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
             buffer += c;
         }
     };
-    fclose(lp);
 
+    fclose(lp);
+*/
+    // return the machine to previous settings
+    //TODO: actually check what old mode was instead of assuming absolute
+    send_gcode(new Gcode("G90") );
+    printf("Engrave completed");
 }
 
 // Turn laser off laser at the end of a move
@@ -109,7 +173,7 @@ void  LaserEngrave::on_block_end(void* argument){
 
 // Set laser power at the beginning of a block
 void LaserEngrave::on_block_begin(void* argument){
-    this->set_proportional_power(1.0);
+    this->set_proportional_power(this->current_power);
 }
 
 // When the play/pause button is set to pause, or a module calls the ON_PAUSE event
@@ -141,9 +205,13 @@ void LaserEngrave::on_gcode_execute(void* argument){
 }
 */
 
+void LaserEngrave::send_gcode(Gcode* gcode) {
+    this->kernel->call_event(ON_GCODE_RECEIVED, gcode );
+}
+
 // We follow the stepper module here, so speed must be proportional
 void LaserEngrave::on_speed_change(void* argument){
-    this->set_proportional_power(1.0);
+    this->set_proportional_power(this->current_power);
 }
 
 void LaserEngrave::set_proportional_power(double rate){

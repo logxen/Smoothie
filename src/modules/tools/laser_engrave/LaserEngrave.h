@@ -13,9 +13,10 @@
 #include "libs/Kernel.h"
 #include "modules/communication/utils/Gcode.h"
 
-#define laser_engrave_module_enable_checksum 00020
+#define laser_engrave_module_enable_checksum 20
 #define laser_engrave_command_checksum       41059
 #define laser_width_checksum                 34714
+#define laser_engrave_feedrate_checksum      1286
 
 #define OFF 0
 #define SOLO 1
@@ -33,6 +34,7 @@ class LaserEngrave : public Module{
         void on_play(void* argument);
         void on_pause(void* argument);
 //        void on_gcode_execute(void* argument);
+        void send_gcode(Gcode* gcode);
         void on_speed_change(void* argument);
         void set_proportional_power(double rate);
 
@@ -40,12 +42,20 @@ class LaserEngrave : public Module{
         bool   laser_on;     // Laser status
 
         double          laser_width;
+        double          default_engrave_feedrate;
 
+        double          current_scan_line;
+        double          current_pixel_row;
+        double          target_scan_line;
         double          start_position;               // Start point ( in steps ) for the current move
         double          target_position;              // End point ( in steps ) for the current move
         double          current_position;             // Current point ( in steps ) for the current move, incremented every time a step is outputed
         double          current_power;                // Current value for pwm control
         Block*          current_block;                // Current block we are stepping, same as Stepper's one
+
+        double          engrave_x;
+        double          engrave_y;
+        double          engrave_feedrate;
 
         char mode;
 

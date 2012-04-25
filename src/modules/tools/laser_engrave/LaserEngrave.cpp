@@ -11,10 +11,10 @@
 #include "modules/communication/utils/Gcode.h"
 #include "modules/robot/Stepper.h"
 #include "LaserEngrave.h"
+#include "libs/SerialMessage.h"
 #include "libs/nuts_bolts.h"
 
-LaserEngrave::LaserEngrave(PwmOut pin) {
-    this->laser_pin = pin;
+LaserEngrave::LaserEngrave(PwmOut& pin) : laser_pin(pin) {
 }
 
 void LaserEngrave::on_module_loaded() {
@@ -40,11 +40,11 @@ void LaserEngrave::on_module_loaded() {
     
     // Update speed every *acceleration_ticks_per_second*
     // TODO: Make this an independent setting
-    this->kernel->slow_ticker->attach( this->kernel->stepper->acceleration_ticks_per_second , this, &LaserEngrave::acceleration_tick );
+    //this->kernel->slow_ticker->attach( this->kernel->stepper->acceleration_ticks_per_second , this, &LaserEngrave::acceleration_tick );
 
     // Initiate main_interrupt timer and step reset timer
-    this->kernel->step_ticker->attach( this, &LaserEngrave::stepping_tick );   
-    this->kernel->step_ticker->reset_attach( this, &LaserEngrave::reset_step_pin );
+    //this->kernel->step_ticker->attach( this, &LaserEngrave::stepping_tick );   
+    //this->kernel->step_ticker->reset_attach( this, &LaserEngrave::reset_step_pin );
 }
 
 // Get config
@@ -70,7 +70,7 @@ void LaserEngrave::on_console_line_received( void* argument ){
     }
 }
 
-void LaserEngrave::laser_engrave_command( string parameters, Stream* stream ){
+void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* stream ){
 
     // Get filename
     string filename          = shift_parameter( parameters );

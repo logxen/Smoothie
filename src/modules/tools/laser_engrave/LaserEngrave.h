@@ -17,12 +17,17 @@
 #define laser_engrave_command_checksum       41059
 #define laser_width_checksum                 34714
 
+#define OFF 0
+#define SOLO 1
+#define FOLLOW 2
+
 class LaserEngrave : public Module{
     public:
-        LaserEngrave(PinName pin);
+        LaserEngrave(PwmOut& pin);
         void on_module_loaded();
+        void on_config_reload(void* argument);
         void on_console_line_received( void* argument );
-        void laser_engrave_command( string parameters, Stream* stream );
+        void laser_engrave_command( string parameters, StreamOutput* stream );
         void on_block_end(void* argument);
         void on_block_begin(void* argument);
         void on_play(void* argument);
@@ -33,6 +38,16 @@ class LaserEngrave : public Module{
 
         PwmOut laser_pin;    // PWM output to regulate the laser power
         bool   laser_on;     // Laser status
+
+        double          laser_width;
+
+        double          start_position;               // Start point ( in steps ) for the current move
+        double          target_position;              // End point ( in steps ) for the current move
+        double          current_position;             // Current point ( in steps ) for the current move, incremented every time a step is outputed
+        double          current_power;                // Current value for pwm control
+        Block*          current_block;                // Current block we are stepping, same as Stepper's one
+
+        char mode;
 
         bool paused;
 };

@@ -13,8 +13,8 @@
 #include "LaserEngrave.h"
 #include "libs/nuts_bolts.h"
 
-LaserEngrave::LaserEngrave(PinName pin) : laser_pin(pin){
-    this->laser_pin.period_us(10);
+LaserEngrave::LaserEngrave(PwmOut pin) {
+    this->laser_pin = pin;
 }
 
 void LaserEngrave::on_module_loaded() {

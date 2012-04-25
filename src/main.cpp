@@ -30,8 +30,9 @@ int main() {
 
     kernel->serial->printf("Smoothie ( grbl port ) version 0.6 \r\nstart\r\n");
 
-    kernel->add_module( new Laser(p21) );
-    kernel->add_module( new LaserEngrave(p21) );
+    Laser laser = new Laser(p21);
+    kernel->add_module( laser );
+    kernel->add_module( new LaserEngrave(laser.laser_pin) );
     kernel->add_module( new Extruder(p26,p27) );
     kernel->add_module( new SimpleShell() );
     kernel->add_module( new CurrentControl() );

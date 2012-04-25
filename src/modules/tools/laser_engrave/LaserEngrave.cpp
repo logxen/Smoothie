@@ -1,8 +1,8 @@
-/*  
+/*
       This file is part of Smoothie (http://smoothieware.org/). The motion control part is heavily based on Grbl (https://github.com/simen/grbl).
       Smoothie is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
       Smoothie is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-      You should have received a copy of the GNU General Public License along with Smoothie. If not, see <http://www.gnu.org/licenses/>. 
+      You should have received a copy of the GNU General Public License along with Smoothie. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "mbed.h"
@@ -18,7 +18,7 @@ LaserEngrave::LaserEngrave(PwmOut& pin) : laser_pin(pin) {
 }
 
 void LaserEngrave::on_module_loaded() {
-    if( !this->kernel->config->value( laser_engrave_module_enable_checksum )->by_default(false)->as_bool() ){ return; } 
+    if( !this->kernel->config->value( laser_engrave_module_enable_checksum )->by_default(false)->as_bool() ){ return; }
 
     this->on_config_reload(this);
 
@@ -37,13 +37,13 @@ void LaserEngrave::on_module_loaded() {
     this->current_power = 0;
     this->current_block = NULL;
     this->mode = OFF;
-    
+
     // Update speed every *acceleration_ticks_per_second*
     // TODO: Make this an independent setting
     //this->kernel->slow_ticker->attach( this->kernel->stepper->acceleration_ticks_per_second , this, &LaserEngrave::acceleration_tick );
 
     // Initiate main_interrupt timer and step reset timer
-    //this->kernel->step_ticker->attach( this, &LaserEngrave::stepping_tick );   
+    //this->kernel->step_ticker->attach( this, &LaserEngrave::stepping_tick );
     //this->kernel->step_ticker->reset_attach( this, &LaserEngrave::reset_step_pin );
 }
 
@@ -80,24 +80,24 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     gcode.command = parameters;
     gcode.stream = stream;
 
-    // Open file 
+    // Open file
     FILE *lp = fopen(filename.c_str(), "r");
     string buffer;
     int c;
-    
+
     // Print each line of the file
     while ((c = fgetc (lp)) != EOF){
         if (c == '\n'){
             stream->printf("%s\n", buffer.c_str());
-            struct SerialMessage message; 
+            struct SerialMessage message;
             message.message = buffer;
             message.stream = stream;
-            this->kernel->call_event(ON_CONSOLE_LINE_RECEIVED, &message); 
+            this->kernel->call_event(ON_CONSOLE_LINE_RECEIVED, &message);
             buffer.clear();
         }else{
             buffer += c;
         }
-    }; 
+    };
     fclose(lp);
 
 }
@@ -147,7 +147,7 @@ void LaserEngrave::on_speed_change(void* argument){
 }
 
 void LaserEngrave::set_proportional_power(double rate){
-    if( this->laser_on && this->kernel->stepper->current_block ){ 
+    if( this->laser_on && this->kernel->stepper->current_block ){
         this->laser_pin = double(this->kernel->stepper->trapezoid_adjusted_rate)/double(this->kernel->stepper->current_block->nominal_rate * rate);
     }
 }

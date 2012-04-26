@@ -17,6 +17,9 @@
 #define laser_engrave_command_checksum       41059
 #define laser_width_checksum                 34714
 #define laser_engrave_feedrate_checksum      1286
+#define laser_engrave_brightness_checksum    63488
+#define laser_engrave_contrast_checksum      50740
+#define steps_per_millimeter_checksum        58088
 
 #define OFF 0
 #define SOLO 1
@@ -33,7 +36,10 @@ class LaserEngrave : public Module{
         void on_block_begin(void* argument);
         void on_play(void* argument);
         void on_pause(void* argument);
-//        void on_gcode_execute(void* argument);
+        uint32_t stepping_tick(uint32_t dummy);
+//        uint32_t reset_step_pin(uint32_t dummy);
+
+        unsigned short get_pixel(unsigned short x, unsigned short y);
         void send_gcode(Gcode* gcode);
         void on_speed_change(void* argument);
         void set_proportional_power(double rate);
@@ -43,10 +49,14 @@ class LaserEngrave : public Module{
 
         double          laser_width;
         double          default_engrave_feedrate;
+        double          default_engrave_brightness;
+        double          default_engrave_contrast;
 
-        double          current_scan_line;
-        double          current_pixel_row;
-        double          target_scan_line;
+        unsigned short  current_scan_line;
+        unsigned short  current_pixel_row;
+        unsigned short  current_pixel_col;
+        RingBuffer<unsigned short, 32> pixel_queue;
+        unsigned short  target_scan_line;
         double          start_position;               // Start point ( in steps ) for the current move
         double          target_position;              // End point ( in steps ) for the current move
         double          current_position;             // Current point ( in steps ) for the current move, incremented every time a step is outputed
@@ -56,6 +66,12 @@ class LaserEngrave : public Module{
         double          engrave_x;
         double          engrave_y;
         double          engrave_feedrate;
+        double          engrave_brightness;
+        double          engrave_contrast;
+
+        int             step_counter;
+        int             counter_increment;
+        int             steps_per_millimeter;
 
         char mode;
 

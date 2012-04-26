@@ -12,6 +12,7 @@
 #include "modules/communication/utils/Gcode.h"
 #include "modules/robot/Stepper.h"
 #include "LaserEngrave.h"
+#include "modules/robot/Player.h"
 #include "libs/SerialMessage.h"
 #include "libs/nuts_bolts.h"
 
@@ -46,16 +47,18 @@ void LaserEngrave::on_module_loaded() {
     //this->kernel->slow_ticker->attach( this->kernel->stepper->acceleration_ticks_per_second , this, &LaserEngrave::acceleration_tick );
 
     // Initiate main_interrupt timer and step reset timer
-    //this->kernel->step_ticker->attach( this, &LaserEngrave::stepping_tick );
-    //this->kernel->step_ticker->reset_attach( this, &LaserEngrave::reset_step_pin );
+    this->kernel->step_ticker->attach( this, &LaserEngrave::stepping_tick );
+//    this->kernel->step_ticker->reset_attach( this, &LaserEngrave::reset_step_pin );
 }
 
 // Get config
 void LaserEngrave::on_config_reload(void* argument){
     this->laser_width = this->kernel->config->value(laser_width_checksum)->by_default(0.25)->as_number();
     this->default_engrave_feedrate = this->kernel->config->value(laser_engrave_feedrate_checksum)->by_default(1200)->as_number();
+    this->default_engrave_brightness = this->kernel->config->value(laser_engrave_feedrate_checksum)->by_default(0)->as_number();
+    this->default_engrave_contrast = this->kernel->config->value(laser_engrave_feedrate_checksum)->by_default(1)->as_number();
 //    this->microseconds_per_step_pulse = this->kernel->config->value(microseconds_per_step_pulse_ckeckusm)->by_default(5)->as_number();
-//    this->steps_per_millimeter        = this->kernel->config->value(steps_per_millimeter_checksum       )->by_default(1)->as_number();
+    this->steps_per_millimeter        = this->kernel->config->value(steps_per_millimeter_checksum       )->by_default(1)->as_number();
 //    this->feed_rate                   = this->kernel->config->value(default_feed_rate_checksum          )->by_default(1)->as_number();
 //    this->acceleration                = this->kernel->config->value(acceleration_checksum               )->by_default(1)->as_number();
 }
@@ -104,6 +107,16 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     } else {
         engrave_feedrate = default_engrave_feedrate; // if feedrate not specified, use value from config
     }
+    if(gcode.has_letter('B')) { // Image black level
+        engrave_brightness = gcode.get_value('B');
+    } else {
+        engrave_brightness = default_engrave_brightness;
+    }
+    if(gcode.has_letter('C')) { // Image gain
+        engrave_contrast = gcode.get_value('C');
+    } else {
+        engrave_contrast = default_engrave_contrast;
+    }
 
     double target_scan_line = floor(engrave_y / laser_width);
     double ppsl = target_scan_line / image_height;
@@ -121,7 +134,9 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     ss.str("G0 X"); ss << copysign(engrave_x,laser_width);
     string g_advance_line;
 
-    printf("Engraving %s at %f mm/min", filename.c_str(), engrave_feedrate);
+    while(this->kernel->player->queue.size() > 0) { wait_us(500); } // wait for the queue to empty
+
+    stream->printf("Engraving %s at %f mm/min", filename.c_str(), engrave_feedrate);
     // begin by setting the machine into relative mode
     //TODO: need to cache current mode
     send_gcode(new Gcode("G91") );
@@ -130,11 +145,42 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     send_gcode(new Gcode(g_scan_x_forward) );
     send_gcode(new Gcode(g_scan_back) );
     send_gcode(new Gcode(g_scan_x_back) );
+
+    while(this->kernel->player->queue.size() > 0) { wait_us(500); } // wait for the queue to empty
+
     // begin engraving
     current_pixel_row = 0;
+    current_pixel_col = 0;
     for (int sl=0;sl<target_scan_line;sl++) {
-        current_scan_line = sl;
-        current_pixel_row = floor(sl * ppsl);
+        do {
+            int n = this->pixel_queue.capacity() - this->pixel_queue.size();
+            if(n > 0 && current_pixel_row < image_height) {
+                for(int i=0;i<n;i++) {
+                    if(current_pixel_row%2 == 0){
+                        if(current_pixel_col >= image_width) {
+                            current_pixel_col = 0;
+                            current_pixel_row++;
+                            if(current_pixel_row >= image_height)
+                                break;
+                        }
+                        pixel_queue.push_back(get_pixel(current_pixel_col, current_pixel_row));
+                        current_pixel_col++;
+                    } else {
+                        if(current_pixel_col < 0) {
+                            current_pixel_col = image_width-1;
+                            current_pixel_row++;
+                            if(current_pixel_row >= image_height)
+                                break;
+                        }
+                        pixel_queue.push_back(get_pixel(current_pixel_col, current_pixel_row));
+                        current_pixel_col--;
+                    }
+                }
+            }
+        }
+        while(this->kernel->player->queue.size() >= this->kernel->player->queue.capacity()-3);
+        //current_scan_line = sl;
+        //current_pixel_row = floor(sl * ppsl);
         send_gcode(new Gcode( (sl % 2) == 0 ? g_scan_forward : g_scan_back) );
         send_gcode(new Gcode(g_advance_line) );
     }
@@ -163,7 +209,7 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     // return the machine to previous settings
     //TODO: actually check what old mode was instead of assuming absolute
     send_gcode(new Gcode("G90") );
-    printf("Engrave completed");
+    stream->printf("Engrave completed");
 }
 
 // Turn laser off laser at the end of a move
@@ -204,6 +250,40 @@ void LaserEngrave::on_gcode_execute(void* argument){
     }
 }
 */
+
+inline uint32_t LaserEngrave::stepping_tick(uint32_t dummy){
+    if( this->paused ){ return 0; }
+
+    this->step_counter += this->counter_increment;
+    if( this->step_counter > 1<<16 ){
+        this->step_counter -= 1<<16;
+/*
+        // If we still have steps to do 
+        // TODO: Step using the same timer as the robot, and count steps instead of absolute float position 
+        if( ( this->current_position < this->target_position && this->direction == 1 ) || ( this->current_position > this->target_position && this->direction == -1 ) ){    
+            this->current_position += (double(double(1)/double(this->steps_per_millimeter)))*double(this->direction);
+            this->dir_pin = ((this->direction > 0) ? 1 : 0);
+            this->step_pin = 1;
+        }else{
+            // Move finished
+            if( this->mode == SOLO && this->current_block != NULL ){
+                // In follow mode, the robot takes and releases the block, in solo mode we do
+                this->current_block->release();        
+            } 
+        }
+*/
+    }
+}
+/*
+uint32_t LaserEngrave::reset_step_pin(uint32_t dummy){
+    this->step_pin = 0;
+}
+*/
+
+unsigned short LaserEngrave::get_pixel(unsigned short x, unsigned short y) {
+    //TODO: Implement some more impressive bitmap than 'the black bears in the black forest during a snowstorm at night under a new moon'
+    return 0;
+}
 
 void LaserEngrave::send_gcode(Gcode* gcode) {
     this->kernel->call_event(ON_GCODE_RECEIVED, gcode );

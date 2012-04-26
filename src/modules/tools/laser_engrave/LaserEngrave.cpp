@@ -118,8 +118,9 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
         engrave_contrast = default_engrave_contrast;
     }
 
-    double target_scan_line = floor(engrave_y / laser_width);
-    double ppsl = target_scan_line / image_height;
+    target_scan_line = floor(engrave_y / laser_width);
+    double ppsl = target_scan_line / image_height; // num of y pixels per scan line
+    this->steps_per_pixel = (image_width / engrave_x) * steps_per_millimeter;
     stringstream ss;
     ss.str(" F"); ss << engrave_feedrate;
     string feedrate = ss.str();
@@ -184,6 +185,15 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
         send_gcode(new Gcode( (sl % 2) == 0 ? g_scan_forward : g_scan_back) );
         send_gcode(new Gcode(g_advance_line) );
     }
+
+    // return the toolhead to original location
+    if(target_scan_line % 2 != 0) { send_gcode(new Gcode(g_scan_back) ); }
+    send_gcode(new Gcode(g_scan_x_back) );
+
+    // return the machine to previous settings
+    //TODO: actually check what old mode was instead of assuming absolute
+    send_gcode(new Gcode("G90") );
+    stream->printf("Engrave completed");
 /*
     // Open file
     FILE *lp = fopen(filename.c_str(), "r");
@@ -206,20 +216,21 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
 
     fclose(lp);
 */
-    // return the machine to previous settings
-    //TODO: actually check what old mode was instead of assuming absolute
-    send_gcode(new Gcode("G90") );
-    stream->printf("Engrave completed");
+}
+
+// Set laser power at the beginning of a block
+void LaserEngrave::on_block_begin(void* argument){
+    Block* block = static_cast<Block*>(argument);
+    if(this->mode == FOLLOW) {
+        this->current_block = block;
+        this->set_proportional_power(this->current_power);
+    }
 }
 
 // Turn laser off laser at the end of a move
 void  LaserEngrave::on_block_end(void* argument){
     this->laser_pin = 0;
-}
-
-// Set laser power at the beginning of a block
-void LaserEngrave::on_block_begin(void* argument){
-    this->set_proportional_power(this->current_power);
+    this->current_block = NULL;
 }
 
 // When the play/pause button is set to pause, or a module calls the ON_PAUSE event
@@ -254,9 +265,16 @@ void LaserEngrave::on_gcode_execute(void* argument){
 inline uint32_t LaserEngrave::stepping_tick(uint32_t dummy){
     if( this->paused ){ return 0; }
 
-    this->step_counter += this->counter_increment;
+    this->step_counter++;
     if( this->step_counter > 1<<16 ){
         this->step_counter -= 1<<16;
+    if(this->step_counter - this->current_position > this->steps_per_pixel) {
+        this->current_position += this->steps_per_pixel;
+        double pixel;
+        this->pixel_queue.pop_front(pixel);
+        this->current_power = this->engrave_brightness + pixel * this->engrave_contrast;
+        this->set_proportional_power(this->current_power);
+    }
 /*
         // If we still have steps to do 
         // TODO: Step using the same timer as the robot, and count steps instead of absolute float position 
@@ -280,7 +298,7 @@ uint32_t LaserEngrave::reset_step_pin(uint32_t dummy){
 }
 */
 
-unsigned short LaserEngrave::get_pixel(unsigned short x, unsigned short y) {
+double LaserEngrave::get_pixel(int x, int y) {
     //TODO: Implement some more impressive bitmap than 'the black bears in the black forest during a snowstorm at night under a new moon'
     return 0;
 }

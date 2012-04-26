@@ -39,7 +39,7 @@ class LaserEngrave : public Module{
         uint32_t stepping_tick(uint32_t dummy);
 //        uint32_t reset_step_pin(uint32_t dummy);
 
-        unsigned short get_pixel(unsigned short x, unsigned short y);
+        double get_pixel(int x, int y);
         void send_gcode(Gcode* gcode);
         void on_speed_change(void* argument);
         void set_proportional_power(double rate);
@@ -52,11 +52,11 @@ class LaserEngrave : public Module{
         double          default_engrave_brightness;
         double          default_engrave_contrast;
 
-        unsigned short  current_scan_line;
-        unsigned short  current_pixel_row;
-        unsigned short  current_pixel_col;
-        RingBuffer<unsigned short, 32> pixel_queue;
-        unsigned short  target_scan_line;
+        int  current_scan_line;
+        int  current_pixel_row;
+        int  current_pixel_col;
+        RingBuffer<double, 32> pixel_queue;
+        int  target_scan_line;
         double          start_position;               // Start point ( in steps ) for the current move
         double          target_position;              // End point ( in steps ) for the current move
         double          current_position;             // Current point ( in steps ) for the current move, incremented every time a step is outputed
@@ -70,8 +70,8 @@ class LaserEngrave : public Module{
         double          engrave_contrast;
 
         int             step_counter;
-        int             counter_increment;
         int             steps_per_millimeter;
+        double          steps_per_pixel;
 
         char mode;
 

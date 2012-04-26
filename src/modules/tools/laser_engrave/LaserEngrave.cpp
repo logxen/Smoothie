@@ -263,17 +263,18 @@ void LaserEngrave::on_gcode_execute(void* argument){
 */
 
 inline uint32_t LaserEngrave::stepping_tick(uint32_t dummy){
-    if( this->paused ){ return 0; }
+    if( this->paused || this->mode == OFF ){ return 0; }
 
     this->step_counter++;
     if( this->step_counter > 1<<16 ){
         this->step_counter -= 1<<16;
-    if(this->step_counter - this->current_position > this->steps_per_pixel) {
-        this->current_position += this->steps_per_pixel;
-        double pixel;
-        this->pixel_queue.pop_front(pixel);
-        this->current_power = this->engrave_brightness + pixel * this->engrave_contrast;
-        this->set_proportional_power(this->current_power);
+        if(this->step_counter - this->current_position > this->steps_per_pixel) {
+            this->current_position += this->steps_per_pixel;
+            double pixel;
+            this->pixel_queue.pop_front(pixel);
+            this->current_power = this->engrave_brightness + pixel * this->engrave_contrast;
+            this->set_proportional_power(this->current_power);
+        }
     }
 /*
         // If we still have steps to do 
@@ -290,7 +291,6 @@ inline uint32_t LaserEngrave::stepping_tick(uint32_t dummy){
             } 
         }
 */
-    }
 }
 /*
 uint32_t LaserEngrave::reset_step_pin(uint32_t dummy){

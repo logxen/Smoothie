@@ -16,8 +16,6 @@ using std::string;
 
 Gcode::Gcode(){}
 
-Gcode::Gcode(string cmd) : command(cmd){}
-
 // Whether or not a Gcode has a letter
 bool Gcode::has_letter( char letter ){
     //return ( this->command->find( letter ) != string::npos );

@@ -141,12 +141,12 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     stream->printf("Engraving %s at %f mm/min\r\n", filename.c_str(), engrave_feedrate);
     // begin by setting the machine into relative mode
     //TODO: need to cache current mode
-    send_gcode(&Gcode("G91") );
+    send_gcode("G91");
     // trace a box around the area to be engraved with the laser off (G0) for professionalism
-    send_gcode(&Gcode(g_scan_forward) );
-    send_gcode(&Gcode(g_scan_x_forward) );
-    send_gcode(&Gcode(g_scan_back) );
-    send_gcode(&Gcode(g_scan_x_back) );
+    send_gcode(g_scan_forward);
+    send_gcode(g_scan_x_forward);
+    send_gcode(g_scan_back);
+    send_gcode(g_scan_x_back);
 
     while(this->kernel->player->queue.size() > 0) { wait_us(500); } // wait for the queue to empty
 
@@ -184,20 +184,20 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
         while(this->kernel->player->queue.size() >= this->kernel->player->queue.capacity()-3);
         //current_scan_line = sl;
         //current_pixel_row = floor(sl * ppsl);
-        send_gcode(&Gcode( (sl % 2) == 0 ? g_scan_forward : g_scan_back) );
-        send_gcode(&Gcode(g_advance_line) );
+        send_gcode((sl % 2) == 0 ? g_scan_forward : g_scan_back);
+        send_gcode(g_advance_line);
     }
 
     while(this->kernel->player->queue.size() > 0) { wait_us(500); } // wait for the queue to empty
     this->mode = OFF;
 
     // return the toolhead to original location
-    if(target_scan_line % 2 != 0) { send_gcode(&Gcode(g_scan_back) ); }
-    send_gcode(&Gcode(g_scan_x_back) );
+    if(target_scan_line % 2 != 0) { send_gcode(g_scan_back); }
+    send_gcode(g_scan_x_back);
 
     // return the machine to previous settings
     //TODO: actually check what old mode was instead of assuming absolute
-    send_gcode(new Gcode("G90") );
+    send_gcode("G90");
     stream->printf("Engrave completed\r\n");
 /*
     // Open file
@@ -312,8 +312,10 @@ double LaserEngrave::get_pixel(int x, int y) {
     return 1/((x-1)^2+(y-1)^2);
 }
 
-void LaserEngrave::send_gcode(Gcode* gcode) {
-    this->kernel->call_event(ON_GCODE_RECEIVED, gcode );
+void LaserEngrave::send_gcode(string cmd) {
+    Gcode gcode = Gcode();
+    gcode.command = cmd;
+    this->kernel->call_event(ON_GCODE_RECEIVED, &gcode );
 }
 
 // We follow the stepper module here, so speed must be proportional

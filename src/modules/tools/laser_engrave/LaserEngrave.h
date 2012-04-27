@@ -40,7 +40,7 @@ class LaserEngrave : public Module{
 //        uint32_t reset_step_pin(uint32_t dummy);
 
         double get_pixel(int x, int y);
-        void send_gcode(Gcode* gcode);
+        void send_gcode(string cmd);
         void on_speed_change(void* argument);
         void set_proportional_power(double rate);
 

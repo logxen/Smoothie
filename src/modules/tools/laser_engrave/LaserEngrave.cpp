@@ -5,7 +5,6 @@
       You should have received a copy of the GNU General Public License along with Smoothie. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <sstream>
 #include "mbed.h"
 #include "libs/Module.h"
 #include "libs/Kernel.h"
@@ -122,19 +121,19 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     target_scan_line = floor(engrave_y / laser_width);
     double ppsl = target_scan_line / image_height; // num of y pixels per scan line
     this->steps_per_pixel = (image_width / engrave_x) * steps_per_millimeter;
-    stringstream ss;
-    ss.str(" F"); ss << engrave_feedrate;
-    string feedrate = ss.str();
-    ss.str("G0 Y"); ss << engrave_y << feedrate;
-    string g_scan_forward = ss.str();
-    ss.str("G0 Y"); ss << engrave_y * -1 << feedrate;
-    string g_scan_back = ss.str();
-    ss.str("G0 X"); ss << engrave_x << feedrate;
-    string g_scan_x_forward = ss.str();
-    ss.str("G0 X"); ss << engrave_x * -1 << feedrate;
-    string g_scan_x_back = ss.str();
-    ss.str("G0 X"); ss << copysign(engrave_x,laser_width);
-    string g_advance_line;
+    char buffer[16];
+    sprintf(buffer, " F%f", engrave_feedrate);
+    string feedrate(buffer);
+    sprintf(buffer, "G0 Y%f%s", engrave_y, feedrate.c_str());
+    string g_scan_forward(buffer);
+    sprintf(buffer, "G0 Y%f%s", engrave_y * -1,feedrate.c_str());
+    string g_scan_back(buffer);
+    sprintf(buffer, "G0 X%f%s", engrave_x, feedrate.c_str());
+    string g_scan_x_forward = (buffer);
+    sprintf(buffer, "G0 X%f%s", engrave_x * -1, feedrate.c_str());
+    string g_scan_x_back = (buffer);
+    sprintf(buffer, "G0 X%f", copysign(engrave_x,laser_width));
+    string g_advance_line = (buffer);
 
     while(this->kernel->player->queue.size() > 0) { wait_us(500); } // wait for the queue to empty
 

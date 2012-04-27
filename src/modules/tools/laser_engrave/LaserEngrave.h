@@ -74,6 +74,7 @@ class LaserEngrave : public Module{
         double          steps_per_pixel;
 
         char mode;
+        bool scanning;
 
         bool paused;
 };

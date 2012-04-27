@@ -41,6 +41,7 @@ void LaserEngrave::on_module_loaded() {
     this->current_power = 0;
     this->current_block = NULL;
     this->mode = OFF;
+    this->scanning = false;
 
     // Update speed every *acceleration_ticks_per_second*
     // TODO: Make this an independent setting
@@ -152,6 +153,7 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     // begin engraving
     current_pixel_row = 0;
     current_pixel_col = 0;
+    this->mode = FOLLOW;
     for (int sl=0;sl<target_scan_line;sl++) {
         do {
             int n = this->pixel_queue.capacity() - this->pixel_queue.size();
@@ -185,6 +187,9 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
         send_gcode(new Gcode( (sl % 2) == 0 ? g_scan_forward : g_scan_back) );
         send_gcode(new Gcode(g_advance_line) );
     }
+
+    while(this->kernel->player->queue.size() > 0) { wait_us(500); } // wait for the queue to empty
+    
 
     // return the toolhead to original location
     if(target_scan_line % 2 != 0) { send_gcode(new Gcode(g_scan_back) ); }
@@ -222,8 +227,11 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
 void LaserEngrave::on_block_begin(void* argument){
     Block* block = static_cast<Block*>(argument);
     if(this->mode == FOLLOW) {
-        this->current_block = block;
-        this->set_proportional_power(this->current_power);
+        scanning = !scanning;
+        if(scanning) {
+            this->current_block = block;
+            //this->set_proportional_power(this->current_power);
+        }
     }
 }
 
@@ -263,7 +271,7 @@ void LaserEngrave::on_gcode_execute(void* argument){
 */
 
 inline uint32_t LaserEngrave::stepping_tick(uint32_t dummy){
-    if( this->paused || this->mode == OFF ){ return 0; }
+    if( this->paused || this->mode == OFF || !this->scanning ){ return 0; }
 
     this->step_counter++;
     if( this->step_counter > 1<<16 ){
@@ -300,7 +308,8 @@ uint32_t LaserEngrave::reset_step_pin(uint32_t dummy){
 
 double LaserEngrave::get_pixel(int x, int y) {
     //TODO: Implement some more impressive bitmap than 'the black bears in the black forest during a snowstorm at night under a new moon'
-    return 0;
+    //return 0;
+    return -1 / (x*x + y*y);
 }
 
 void LaserEngrave::send_gcode(Gcode* gcode) {

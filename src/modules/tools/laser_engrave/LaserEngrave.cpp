@@ -138,15 +138,15 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
 
     while(this->kernel->player->queue.size() > 0) { wait_us(500); } // wait for the queue to empty
 
-    stream->printf("Engraving %s at %f mm/min", filename.c_str(), engrave_feedrate);
+    stream->printf("Engraving %s at %f mm/min\r\n", filename.c_str(), engrave_feedrate);
     // begin by setting the machine into relative mode
     //TODO: need to cache current mode
-    send_gcode(new Gcode("G91") );
+    send_gcode(&Gcode("G91") );
     // trace a box around the area to be engraved with the laser off (G0) for professionalism
-    send_gcode(new Gcode(g_scan_forward) );
-    send_gcode(new Gcode(g_scan_x_forward) );
-    send_gcode(new Gcode(g_scan_back) );
-    send_gcode(new Gcode(g_scan_x_back) );
+    send_gcode(&Gcode(g_scan_forward) );
+    send_gcode(&Gcode(g_scan_x_forward) );
+    send_gcode(&Gcode(g_scan_back) );
+    send_gcode(&Gcode(g_scan_x_back) );
 
     while(this->kernel->player->queue.size() > 0) { wait_us(500); } // wait for the queue to empty
 
@@ -155,7 +155,7 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     current_pixel_col = 0;
     this->mode = FOLLOW;
     for (int sl=0;sl<target_scan_line;sl++) {
-        do {
+        do { // fill the pixel buffer
             int n = this->pixel_queue.capacity() - this->pixel_queue.size();
             if(n > 0 && current_pixel_row < image_height) {
                 for(int i=0;i<n;i++) {
@@ -184,21 +184,21 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
         while(this->kernel->player->queue.size() >= this->kernel->player->queue.capacity()-3);
         //current_scan_line = sl;
         //current_pixel_row = floor(sl * ppsl);
-        send_gcode(new Gcode( (sl % 2) == 0 ? g_scan_forward : g_scan_back) );
-        send_gcode(new Gcode(g_advance_line) );
+        send_gcode(&Gcode( (sl % 2) == 0 ? g_scan_forward : g_scan_back) );
+        send_gcode(&Gcode(g_advance_line) );
     }
 
     while(this->kernel->player->queue.size() > 0) { wait_us(500); } // wait for the queue to empty
-    
+    this->mode = OFF;
 
     // return the toolhead to original location
-    if(target_scan_line % 2 != 0) { send_gcode(new Gcode(g_scan_back) ); }
-    send_gcode(new Gcode(g_scan_x_back) );
+    if(target_scan_line % 2 != 0) { send_gcode(&Gcode(g_scan_back) ); }
+    send_gcode(&Gcode(g_scan_x_back) );
 
     // return the machine to previous settings
     //TODO: actually check what old mode was instead of assuming absolute
     send_gcode(new Gcode("G90") );
-    stream->printf("Engrave completed");
+    stream->printf("Engrave completed\r\n");
 /*
     // Open file
     FILE *lp = fopen(filename.c_str(), "r");
@@ -309,7 +309,7 @@ uint32_t LaserEngrave::reset_step_pin(uint32_t dummy){
 double LaserEngrave::get_pixel(int x, int y) {
     //TODO: Implement some more impressive bitmap than 'the black bears in the black forest during a snowstorm at night under a new moon'
     //return 0;
-    return -1 / (x*x + y*y);
+    return 1/((x-1)^2+(y-1)^2);
 }
 
 void LaserEngrave::send_gcode(Gcode* gcode) {

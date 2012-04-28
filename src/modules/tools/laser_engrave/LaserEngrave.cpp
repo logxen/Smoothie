@@ -311,7 +311,7 @@ void LaserEngrave::fill_pixel_buffer() {
 double LaserEngrave::get_pixel(int x, int y) {
     //TODO: Implement some more impressive bitmap than 'the black bears in the black forest during a snowstorm at night under a new moon'
     //return 0;
-    return 1/((x-1)^2+(y-1)^2);
+    return max(min(1/((x-1)^2+(y-1)^2),1),0);
 }
 
 void LaserEngrave::send_gcode(string msg, StreamOutput* stream) {

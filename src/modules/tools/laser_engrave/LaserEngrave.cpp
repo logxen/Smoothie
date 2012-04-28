@@ -252,12 +252,10 @@ void LaserEngrave::on_gcode_execute(void* argument){
 inline uint32_t LaserEngrave::stepping_tick(uint32_t dummy){
     if( this->paused || this->mode == OFF || !this->laser_on ){ return 0; }
 
-    //this->stream->printf("DEBUG: step_counter: %f, current_position: %f, steps_per_pixel: %f\r\n", this->step_counter, this->current_position, this->steps_per_pixel);
     if(this->kernel->stepper->stepped[ALPHA_STEPPER] - this->current_position > this->steps_per_pixel) {
         this->current_position += this->steps_per_pixel;
         double pixel;
         this->pixel_queue.pop_front(pixel);
-    this->stream->printf("DEBUG: popped %f from pixel queue\r\n", pixel);
         this->current_power = 1 - pixel;
         this->set_proportional_power(this->current_power);
     }

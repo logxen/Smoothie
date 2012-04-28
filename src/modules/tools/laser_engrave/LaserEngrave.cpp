@@ -258,6 +258,7 @@ inline uint32_t LaserEngrave::stepping_tick(uint32_t dummy){
             this->current_position += this->steps_per_pixel;
             double pixel;
             this->pixel_queue.pop_front(pixel);
+        this->stream->printf("DEBUG: popped %f from pixel queue\r\n", pixel);
             this->current_power = 1 - pixel;
             this->set_proportional_power(this->current_power);
         }
@@ -334,7 +335,6 @@ void LaserEngrave::on_speed_change(void* argument){
 
 void LaserEngrave::set_proportional_power(double rate){
     if( this->laser_on && this->kernel->stepper->current_block ){
-        this->laser_pin = double(this->kernel->stepper->trapezoid_adjusted_rate)/double(this->kernel->stepper->current_block->nominal_rate * rate);
-        this->stream->printf("DEBUG: laser pwm now set to %f", double(this->kernel->stepper->trapezoid_adjusted_rate)/double(this->kernel->stepper->current_block->nominal_rate * rate));
+        this->laser_pin = (double(this->kernel->stepper->trapezoid_adjusted_rate)/double(this->kernel->stepper->current_block->nominal_rate)) * rate;
     }
 }

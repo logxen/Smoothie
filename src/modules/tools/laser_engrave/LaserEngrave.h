@@ -76,7 +76,6 @@ class LaserEngrave : public Module{
         double          engrave_brightness;
         double          engrave_contrast;
 
-        int             step_counter;
         int             steps_per_millimeter;
         double          steps_per_pixel;
 

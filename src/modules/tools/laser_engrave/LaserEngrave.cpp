@@ -206,6 +206,7 @@ void LaserEngrave::on_block_begin(void* argument){
         scanning = !scanning;
         if(scanning) {
             this->current_block = block;
+            this->current_position = this->kernel->stepper->stepped[ALPHA_STEPPER];
             this->laser_on = true;
             this->set_proportional_power(this->current_power);
         }
@@ -251,12 +252,8 @@ void LaserEngrave::on_gcode_execute(void* argument){
 inline uint32_t LaserEngrave::stepping_tick(uint32_t dummy){
     if( this->paused || this->mode == OFF || !this->laser_on ){ return 0; }
 
-    this->step_counter++;
-    if( this->step_counter > 1<<16 ){
-        this->step_counter -= 1<<16;
-    }
-
-    if(this->step_counter - this->current_position > this->steps_per_pixel) {
+    //this->stream->printf("DEBUG: step_counter: %f, current_position: %f, steps_per_pixel: %f\r\n", this->step_counter, this->current_position, this->steps_per_pixel);
+    if(this->kernel->stepper->stepped[ALPHA_STEPPER] - this->current_position > this->steps_per_pixel) {
         this->current_position += this->steps_per_pixel;
         double pixel;
         this->pixel_queue.pop_front(pixel);

@@ -205,13 +205,15 @@ void LaserEngrave::on_block_begin(void* argument){
         scanning = !scanning;
         if(scanning) {
             this->current_block = block;
-            //this->set_proportional_power(this->current_power);
+            this->laser_on = true;
+            this->set_proportional_power(this->current_power);
         }
     }
 }
 
 // Turn laser off laser at the end of a move
 void  LaserEngrave::on_block_end(void* argument){
+    this->laser_on = false;
     this->laser_pin = 0;
     this->current_block = NULL;
 }
@@ -246,7 +248,7 @@ void LaserEngrave::on_gcode_execute(void* argument){
 */
 
 inline uint32_t LaserEngrave::stepping_tick(uint32_t dummy){
-    if( this->paused || this->mode == OFF || !this->scanning ){ return 0; }
+    if( this->paused || this->mode == OFF || !this->laser_on ){ return 0; }
 
     this->step_counter++;
     if( this->step_counter > 1<<16 ){
@@ -255,7 +257,7 @@ inline uint32_t LaserEngrave::stepping_tick(uint32_t dummy){
             this->current_position += this->steps_per_pixel;
             double pixel;
             this->pixel_queue.pop_front(pixel);
-            this->current_power = this->engrave_brightness + pixel * this->engrave_contrast;
+            this->current_power = 1 - pixel;
             this->set_proportional_power(this->current_power);
         }
     }
@@ -309,9 +311,10 @@ void LaserEngrave::fill_pixel_buffer() {
 }
 
 double LaserEngrave::get_pixel(int x, int y) {
-    //TODO: Implement some more impressive bitmap than 'the black bears in the black forest during a snowstorm at night under a new moon'
     //return 0;
-    return max(min(1/((x-1)^2+(y-1)^2),1),0);
+    double pixel = 1/((x-1)^2+(y-1)^2);
+    pixel = this->engrave_brightness + pixel * this->engrave_contrast;
+    return max(min(pixel,1.0),0.0);
 }
 
 void LaserEngrave::send_gcode(string msg, StreamOutput* stream) {
@@ -323,7 +326,9 @@ void LaserEngrave::send_gcode(string msg, StreamOutput* stream) {
 
 // We follow the stepper module here, so speed must be proportional
 void LaserEngrave::on_speed_change(void* argument){
-    this->set_proportional_power(this->current_power);
+    if(this->laser_on) {
+        this->set_proportional_power(this->current_power);
+    }
 }
 
 void LaserEngrave::set_proportional_power(double rate){

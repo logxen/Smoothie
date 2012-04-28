@@ -254,14 +254,15 @@ inline uint32_t LaserEngrave::stepping_tick(uint32_t dummy){
     this->step_counter++;
     if( this->step_counter > 1<<16 ){
         this->step_counter -= 1<<16;
-        if(this->step_counter - this->current_position > this->steps_per_pixel) {
-            this->current_position += this->steps_per_pixel;
-            double pixel;
-            this->pixel_queue.pop_front(pixel);
-        this->stream->printf("DEBUG: popped %f from pixel queue\r\n", pixel);
-            this->current_power = 1 - pixel;
-            this->set_proportional_power(this->current_power);
-        }
+    }
+
+    if(this->step_counter - this->current_position > this->steps_per_pixel) {
+        this->current_position += this->steps_per_pixel;
+        double pixel;
+        this->pixel_queue.pop_front(pixel);
+    this->stream->printf("DEBUG: popped %f from pixel queue\r\n", pixel);
+        this->current_power = 1 - pixel;
+        this->set_proportional_power(this->current_power);
     }
 /*
         // If we still have steps to do 

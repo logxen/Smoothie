@@ -48,6 +48,9 @@ class LaserEngrave : public Module{
         PwmOut laser_pin;    // PWM output to regulate the laser power
         bool   laser_on;     // Laser status
 
+        string filename;
+        StreamOutput* stream;
+
         double          laser_width;
         double          default_engrave_feedrate;
         double          default_engrave_brightness;

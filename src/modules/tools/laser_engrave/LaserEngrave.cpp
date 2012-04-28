@@ -79,7 +79,8 @@ void LaserEngrave::on_console_line_received( void* argument ){
 
 void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* stream ){
     // Get filename
-    string filename          = shift_parameter( parameters );
+    this->filename          = shift_parameter( parameters );
+    this->stream = stream;
 
     // Read fileheader
     // ** fake fileheader system **
@@ -334,5 +335,6 @@ void LaserEngrave::on_speed_change(void* argument){
 void LaserEngrave::set_proportional_power(double rate){
     if( this->laser_on && this->kernel->stepper->current_block ){
         this->laser_pin = double(this->kernel->stepper->trapezoid_adjusted_rate)/double(this->kernel->stepper->current_block->nominal_rate * rate);
+        this->stream->printf("DEBUG: laser pwm now set to %f", double(this->kernel->stepper->trapezoid_adjusted_rate)/double(this->kernel->stepper->current_block->nominal_rate * rate));
     }
 }

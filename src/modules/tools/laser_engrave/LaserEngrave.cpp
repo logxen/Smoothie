@@ -132,7 +132,7 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     string g_scan_y_forward = (buffer);
     sprintf(buffer, "G0 Y%f%s\r\n", engrave_y, feedrate.c_str());
     string g_scan_y_back = (buffer);
-    sprintf(buffer, "G0 Y%f\r\n", copysign(engrave_y * -1, laser_width));
+    sprintf(buffer, "G0 Y%f\r\n", copysign(laser_width, engrave_y * -1));
     string g_advance_line = (buffer);
 
     while(this->kernel->player->queue.size() > 0) { wait_us(500); } // wait for the queue to empty
@@ -287,7 +287,7 @@ void LaserEngrave::fill_pixel_buffer() {
                 for(int i=0;i<n;i++) {
                     if(current_pixel_row%2 == 0){
                         if(current_pixel_col >= this->image_width) {
-                            current_pixel_col = 0;
+                            current_pixel_col = this->image_width-1;
                             current_pixel_row++;
                             if(current_pixel_row >= this->image_height)
                                 break;
@@ -296,7 +296,7 @@ void LaserEngrave::fill_pixel_buffer() {
                         current_pixel_col++;
                     } else {
                         if(current_pixel_col < 0) {
-                            current_pixel_col = this->image_width-1;
+                            current_pixel_col = 0;
                             current_pixel_row++;
                             if(current_pixel_row >= this->image_height)
                                 break;

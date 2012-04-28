@@ -53,6 +53,9 @@ class LaserEngrave : public Module{
         double          default_engrave_brightness;
         double          default_engrave_contrast;
 
+        int  image_width;
+        int  image_height;
+        int  image_bpp;
         int  current_scan_line;
         int  current_pixel_row;
         int  current_pixel_col;

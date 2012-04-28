@@ -83,9 +83,9 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
 
     // Read fileheader
     // ** fake fileheader system **
-    unsigned short image_width = 10;
-    unsigned short image_height = 10;
-    unsigned short image_bpp = 8;
+    this->image_width = 10;
+    this-> image_height = 10;
+    this-> image_bpp = 8;
 
     // Get other parameters
     Gcode gcode = Gcode();
@@ -95,12 +95,12 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     if(gcode.has_letter('I')) {
         engrave_x = gcode.get_value('I');
     } else {
-        engrave_x = image_width;
+        engrave_x = this->image_width;
     }
     if(gcode.has_letter('J')) {
         engrave_y = gcode.get_value('J');
     } else {
-        engrave_y = image_height;
+        engrave_y = this->image_height;
     }
     if(gcode.has_letter('F')) {
         engrave_feedrate = gcode.get_value('F');
@@ -119,8 +119,8 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     }
 
     target_scan_line = floor(engrave_y / laser_width); // nub of scan liness
-    double ppsl = target_scan_line / image_height; // num of y pixels per scan line
-    this->steps_per_pixel = (image_width / engrave_x) * steps_per_millimeter;
+    double ppsl = target_scan_line / this->image_height; // num of y pixels per scan line
+    this->steps_per_pixel = (this->image_width / engrave_x) * steps_per_millimeter;
     char buffer[16];
     sprintf(buffer, " F%f", engrave_feedrate);
     string feedrate(buffer);
@@ -283,22 +283,22 @@ uint32_t LaserEngrave::reset_step_pin(uint32_t dummy){
 
 void LaserEngrave::fill_pixel_buffer() {
             int n = this->pixel_queue.capacity() - this->pixel_queue.size();
-            if(n > 0 && current_pixel_row < image_height) {
+            if(n > 0 && current_pixel_row < this->image_height) {
                 for(int i=0;i<n;i++) {
                     if(current_pixel_row%2 == 0){
-                        if(current_pixel_col >= image_width) {
+                        if(current_pixel_col >= this->image_width) {
                             current_pixel_col = 0;
                             current_pixel_row++;
-                            if(current_pixel_row >= image_height)
+                            if(current_pixel_row >= this->image_height)
                                 break;
                         }
                         pixel_queue.push_back(get_pixel(current_pixel_col, current_pixel_row));
                         current_pixel_col++;
                     } else {
                         if(current_pixel_col < 0) {
-                            current_pixel_col = image_width-1;
+                            current_pixel_col = this->image_width-1;
                             current_pixel_row++;
-                            if(current_pixel_row >= image_height)
+                            if(current_pixel_row >= this->image_height)
                                 break;
                         }
                         pixel_queue.push_back(get_pixel(current_pixel_col, current_pixel_row));

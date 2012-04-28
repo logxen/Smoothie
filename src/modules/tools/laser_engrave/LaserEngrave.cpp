@@ -124,15 +124,15 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     char buffer[16];
     sprintf(buffer, " F%f", engrave_feedrate);
     string feedrate(buffer);
-    sprintf(buffer, "G0 X%f%s\r\n", engrave_x, feedrate.c_str());
+    sprintf(buffer, "G0 X%f", engrave_x);
     string g_scan_forward(buffer);
-    sprintf(buffer, "G0 X%f%s\r\n", engrave_x * -1,feedrate.c_str());
+    sprintf(buffer, "G0 X%f", engrave_x * -1);
     string g_scan_back(buffer);
-    sprintf(buffer, "G0 Y%f%s\r\n", engrave_y * -1, feedrate.c_str());
+    sprintf(buffer, "G0 Y%f", engrave_y * -1);
     string g_scan_y_forward = (buffer);
-    sprintf(buffer, "G0 Y%f%s\r\n", engrave_y, feedrate.c_str());
+    sprintf(buffer, "G0 Y%f", engrave_y);
     string g_scan_y_back = (buffer);
-    sprintf(buffer, "G0 Y%f\r\n", copysign(laser_width, engrave_y * -1));
+    sprintf(buffer, "G0 Y%f", copysign(laser_width, engrave_y * -1));
     string g_advance_line = (buffer);
 
     while(this->kernel->player->queue.size() > 0) { wait_us(500); } // wait for the queue to empty
@@ -142,10 +142,10 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     //TODO: need to cache current mode
     send_gcode("G91\r\n", stream);
     // trace a box around the area to be engraved with the laser off (G0) for professionalism
-    send_gcode(g_scan_forward, stream);
-    send_gcode(g_scan_y_forward, stream);
-    send_gcode(g_scan_back, stream);
-    send_gcode(g_scan_y_back, stream);
+    send_gcode(g_scan_forward + "\r\n", stream);
+    send_gcode(g_scan_y_forward + "\r\n", stream);
+    send_gcode(g_scan_back + "\r\n", stream);
+    send_gcode(g_scan_y_back + "\r\n", stream);
 
     while(this->kernel->player->queue.size() > 0) { wait_us(500); } // wait for the queue to empty
 
@@ -158,8 +158,8 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
         do { fill_pixel_buffer(); wait_us(50); } 
         // if there is room in the queue break from the buffer fill loop to add some gcodes to the queue
         while(this->kernel->player->queue.size() >= this->kernel->player->queue.capacity()-3);
-        send_gcode((sl % 2) == 0 ? g_scan_forward : g_scan_back, stream);
-        send_gcode(g_advance_line, stream);
+        send_gcode(((sl % 2) == 0 ? g_scan_forward : g_scan_back) + feedrate + "\r\n", stream);
+        send_gcode(g_advance_line + "\r\n", stream);
     }
 
     // keep the buffer full until the queue is empty
@@ -167,8 +167,8 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     this->mode = OFF;
 
     // return the toolhead to original location
-    if(target_scan_line % 2 != 0) { send_gcode(g_scan_back, stream); }
-    send_gcode(g_scan_y_back, stream);
+    if(target_scan_line % 2 != 0) { send_gcode(g_scan_back + "\r\n", stream); }
+    send_gcode(g_scan_y_back + "\r\n", stream);
 
     // return the machine to previous settings
     //TODO: actually check what old mode was instead of assuming absolute

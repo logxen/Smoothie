@@ -39,6 +39,7 @@ class LaserEngrave : public Module{
         uint32_t stepping_tick(uint32_t dummy);
 //        uint32_t reset_step_pin(uint32_t dummy);
 
+        void fill_pixel_buffer();
         double get_pixel(int x, int y);
         void send_gcode(string msg, StreamOutput* stream);
         void on_speed_change(void* argument);

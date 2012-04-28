@@ -118,7 +118,7 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
         engrave_contrast = default_engrave_contrast;
     }
 
-    target_scan_line = floor(engrave_y / laser_width);
+    target_scan_line = floor(engrave_y / laser_width); // nub of scan liness
     double ppsl = target_scan_line / image_height; // num of y pixels per scan line
     this->steps_per_pixel = (image_width / engrave_x) * steps_per_millimeter;
     char buffer[16];
@@ -128,11 +128,11 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     string g_scan_forward(buffer);
     sprintf(buffer, "G0 X%f%s\r\n", engrave_x * -1,feedrate.c_str());
     string g_scan_back(buffer);
-    sprintf(buffer, "G0 Y%f%s\r\n", engrave_y, feedrate.c_str());
-    string g_scan_y_forward = (buffer);
     sprintf(buffer, "G0 Y%f%s\r\n", engrave_y * -1, feedrate.c_str());
+    string g_scan_y_forward = (buffer);
+    sprintf(buffer, "G0 Y%f%s\r\n", engrave_y, feedrate.c_str());
     string g_scan_y_back = (buffer);
-    sprintf(buffer, "G0 Y%f\r\n", copysign(engrave_y,laser_width));
+    sprintf(buffer, "G0 Y%f\r\n", copysign(engrave_y * -1, laser_width));
     string g_advance_line = (buffer);
 
     while(this->kernel->player->queue.size() > 0) { wait_us(500); } // wait for the queue to empty
@@ -154,16 +154,16 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     current_pixel_col = 0;
     this->mode = FOLLOW;
     for (int sl=0;sl<target_scan_line;sl++) {
-        do { fill_pixel_buffer(); } 
+        // fill the pixel buffer at least once per pass
+        do { fill_pixel_buffer(); wait_us(50); } 
         // if there is room in the queue break from the buffer fill loop to add some gcodes to the queue
         while(this->kernel->player->queue.size() >= this->kernel->player->queue.capacity()-3);
-        //current_scan_line = sl;
-        //current_pixel_row = floor(sl * ppsl);
         send_gcode((sl % 2) == 0 ? g_scan_forward : g_scan_back, stream);
         send_gcode(g_advance_line, stream);
     }
 
-    while(this->kernel->player->queue.size() > 0) { wait_us(500); } // wait for the queue to empty
+    // keep the buffer full until the queue is empty
+    while(this->kernel->player->queue.size() > 0) { fill_pixel_buffer(); wait_us(50); }
     this->mode = OFF;
 
     // return the toolhead to original location

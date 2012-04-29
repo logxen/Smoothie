@@ -315,12 +315,17 @@ double LaserEngrave::get_pixel(int x, int y) {
     if(this->filename.compare("black") == 0) {
         return 0.0;
     }
+    if(this->filename.compare("white") == 0) {
+        return 1.0;
+    }
     if(this->filename.compare("check") == 0) {
         if((x+y)%2 == 0) return 0.0;
         else return 1.0;
     }
     if(this->filename.compare("sides") == 0) {
-        if(x == 0 || x == 2 || x == this->image_width-1 || x == this->image_width-3) return 0.0;
+        if(x == 0 || x == 3 || x == this->image_width-1 || x == this->image_width-4
+                || y == 0 || y == 3 || y == this->image_height-1 || y == this->image_height-4)
+            return 0.0;
         else return 1.0;
     }
     if(this->filename.compare("ramp") == 0) {

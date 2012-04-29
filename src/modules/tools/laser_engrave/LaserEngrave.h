@@ -68,7 +68,6 @@ class LaserEngrave : public Module{
         double          target_position;              // End point ( in steps ) for the current move
         double          current_position;             // Current point ( in steps ) for the current move, incremented every time a step is outputed
         double          current_power;                // Current value for pwm control
-        Block*          current_block;                // Current block we are stepping, same as Stepper's one
 
         double          engrave_x;
         double          engrave_y;

@@ -209,7 +209,7 @@ void LaserEngrave::on_block_begin(void* argument){
         scanning = !scanning;
         if(scanning) {
             this->stream->printf("DEBUG: Beginning scan block\r\n");
-            this->current_block = block;
+            //this->current_block = block;
             this->current_position = this->kernel->stepper->stepped[ALPHA_STEPPER];
             this->laser_on = true;
             //this->set_proportional_power(this->current_power);
@@ -221,7 +221,7 @@ void LaserEngrave::on_block_begin(void* argument){
 void  LaserEngrave::on_block_end(void* argument){
     this->laser_on = false;
     this->laser_pin = 0;
-    this->current_block = NULL;
+    //this->current_block = NULL;
 }
 
 // When the play/pause button is set to pause, or a module calls the ON_PAUSE event

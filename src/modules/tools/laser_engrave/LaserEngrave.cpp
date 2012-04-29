@@ -55,8 +55,8 @@ void LaserEngrave::on_module_loaded() {
 void LaserEngrave::on_config_reload(void* argument){
     this->laser_width = this->kernel->config->value(laser_width_checksum)->by_default(0.25)->as_number();
     this->default_engrave_feedrate = this->kernel->config->value(laser_engrave_feedrate_checksum)->by_default(1200)->as_number();
-    this->default_engrave_brightness = this->kernel->config->value(laser_engrave_feedrate_checksum)->by_default(0)->as_number();
-    this->default_engrave_contrast = this->kernel->config->value(laser_engrave_feedrate_checksum)->by_default(1)->as_number();
+    this->default_engrave_brightness = this->kernel->config->value(laser_engrave_feedrate_checksum)->by_default(0.0)->as_number();
+    this->default_engrave_contrast = this->kernel->config->value(laser_engrave_feedrate_checksum)->by_default(1.0)->as_number();
 //    this->microseconds_per_step_pulse = this->kernel->config->value(microseconds_per_step_pulse_ckeckusm)->by_default(5)->as_number();
     this->steps_per_millimeter        = this->kernel->config->value(steps_per_millimeter_checksum       )->by_default(1)->as_number();
 //    this->feed_rate                   = this->kernel->config->value(default_feed_rate_checksum          )->by_default(1)->as_number();
@@ -84,9 +84,9 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
 
     // Read fileheader
     // ** fake fileheader system **
-    this->image_width = 10;
-    this-> image_height = 10;
-    this-> image_bpp = 8;
+    this->image_width = 100;
+    this->image_height = 100;
+    this->image_bpp = 8; // not yet used
 
     // Get other parameters
     Gcode gcode = Gcode();
@@ -313,7 +313,7 @@ void LaserEngrave::fill_pixel_buffer() {
 
 double LaserEngrave::get_pixel(int x, int y) {
     //return 0;
-    double pixel = 1/((x-5)^2+(y-5)^2);
+    double pixel = 1/((x-this->image_width/2)^2+(y-this->image_height/2)^2);
     pixel = this->engrave_brightness + pixel * this->engrave_contrast;
     return max(min(pixel,1.0),0.0);
 }

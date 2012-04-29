@@ -120,8 +120,7 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     }
 
     target_scan_line = floor(engrave_y / laser_width); // nub of scan liness
-    double ppsl = target_scan_line / this->image_height; // num of y pixels per scan line
-    this->steps_per_pixel = (this->image_width / engrave_x) * steps_per_millimeter;
+    this->steps_per_pixel = (engrave_x / this->image_width) * steps_per_millimeter;
     char buffer[16];
     sprintf(buffer, " F%f", engrave_feedrate);
     string feedrate(buffer);

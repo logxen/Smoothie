@@ -314,31 +314,42 @@ void LaserEngrave::fill_pixel_buffer() {
             }
 }
 
+#define BLACK_CHECKSUM          62462
+#define WHITE_CHECKSUM          33059
+#define CHECK_CHECKSUM          62464
+#define SIDES_CHECKSUM          21018
+#define RAMP_CHECKSUM           14769
+#define DOOM_CHECKSUM           11440
+
 double LaserEngrave::get_pixel(int x, int y) {
-    //return 0;
-    if(this->filename.compare("black") == 0) {
+    unsigned short check_sum = get_checksum( this->filename );
+
+    // Act depending on command
+    switch( check_sum ){
+    case BLACK_CHECKSUM:
         return 0.0;
-    }
-    if(this->filename.compare("white") == 0) {
+        break;
+    case WHITE_CHECKSUM:
         return 1.0;
-    }
-    if(this->filename.compare("check") == 0) {
+        break;
+    case CHECK_CHECKSUM:
         if((x+y)%2 == 0) return 0.0;
         else return 1.0;
-    }
-    if(this->filename.compare("sides") == 0) {
+        break;
+    case SIDES_CHECKSUM:
         if(x == 0 || x == 3 || x == this->image_width-1 || x == this->image_width-4
                 || y == 0 || y == 3 || y == this->image_height-1 || y == this->image_height-4)
             return 0.0;
         else return 1.0;
-    }
-    if(this->filename.compare("ramp") == 0) {
+        break;
+    case RAMP_CHECKSUM:
         return double(x / this->image_width);
-    }
-    if(this->filename.compare("doom") == 0) {
+        break;
+    case DOOM_CHECKSUM:
         double pixel = 1.0/((x-this->image_width/2)^2+(y-this->image_height/2)^2);
         pixel = this->engrave_brightness + pixel * this->engrave_contrast;
         return max(min(pixel,1.0),0.0);
+        break;
     }
 }
 

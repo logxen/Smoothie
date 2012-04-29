@@ -33,7 +33,7 @@ int main() {
     Laser* laser = new Laser(p21);
     kernel->add_module( laser );
     kernel->add_module( new LaserEngrave(laser->laser_pin) );
-    kernel->add_module( new Extruder(p26,p27) );
+    kernel->add_module( new Extruder() );
     kernel->add_module( new SimpleShell() );
     kernel->add_module( new CurrentControl() );
     kernel->add_module( new TemperatureControlPool() );

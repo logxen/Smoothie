@@ -41,6 +41,7 @@ void LaserEngrave::on_module_loaded() {
     this->current_block = NULL;
     this->mode = OFF;
     this->scanning = false;
+    this->paused = false;
 
     // Update speed every *acceleration_ticks_per_second*
     // TODO: Make this an independent setting
@@ -154,17 +155,19 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     current_pixel_row = 0;
     current_pixel_col = 0;
     this->mode = FOLLOW;
+    this->scanning = false;
     for (int sl=0;sl<target_scan_line;sl++) {
         // fill the pixel buffer at least once per pass
         do { fill_pixel_buffer(); wait_us(50); } 
         // if there is room in the queue break from the buffer fill loop to add some gcodes to the queue
         while(this->kernel->player->queue.size() >= this->kernel->player->queue.capacity()-3);
+        // send the gcodes for a scanline
         send_gcode(((sl % 2) == 0 ? g_scan_forward : g_scan_back) + feedrate + "\r\n", stream);
         send_gcode(g_advance_line + "\r\n", stream);
     }
 
     // keep the buffer full until the queue is empty
-    while(this->kernel->player->queue.size() > 0) { fill_pixel_buffer(); wait_us(50); }
+    while(this->kernel->player->queue.size() > 0) { fill_pixel_buffer(); wait_us(500); }
     this->mode = OFF;
 
     // return the toolhead to original location
@@ -205,10 +208,11 @@ void LaserEngrave::on_block_begin(void* argument){
     if(this->mode == FOLLOW) {
         scanning = !scanning;
         if(scanning) {
+            this->stream->printf("DEBUG: Beginning scan block\r\n");
             this->current_block = block;
             this->current_position = this->kernel->stepper->stepped[ALPHA_STEPPER];
             this->laser_on = true;
-            this->set_proportional_power(this->current_power);
+            //this->set_proportional_power(this->current_power);
         }
     }
 }
@@ -259,6 +263,7 @@ inline uint32_t LaserEngrave::stepping_tick(uint32_t dummy){
         this->current_power = 1 - pixel;
         this->set_proportional_power(this->current_power);
     }
+    return 0;
 /*
         // If we still have steps to do 
         // TODO: Step using the same timer as the robot, and count steps instead of absolute float position 
@@ -305,12 +310,13 @@ void LaserEngrave::fill_pixel_buffer() {
                         current_pixel_col--;
                     }
                 }
+                this->stream->printf("DEBUG: added %d pixels to the queue\r\n", n);
             }
 }
 
 double LaserEngrave::get_pixel(int x, int y) {
     //return 0;
-    double pixel = 1/((x-1)^2+(y-1)^2);
+    double pixel = 1/((x-5)^2+(y-5)^2);
     pixel = this->engrave_brightness + pixel * this->engrave_contrast;
     return max(min(pixel,1.0),0.0);
 }

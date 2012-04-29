@@ -312,9 +312,25 @@ void LaserEngrave::fill_pixel_buffer() {
 
 double LaserEngrave::get_pixel(int x, int y) {
     //return 0;
-    double pixel = 1/((x-this->image_width/2)^2+(y-this->image_height/2)^2);
-    pixel = this->engrave_brightness + pixel * this->engrave_contrast;
-    return max(min(pixel,1.0),0.0);
+    if(this->filename.compare("black") == 0) {
+        return 0.0;
+    }
+    if(this->filename.compare("check") == 0) {
+        if((x+y)%2 == 0) return 0.0;
+        else return 1.0;
+    }
+    if(this->filename.compare("sides") == 0) {
+        if(x == 0 || x == 2 || x == this->image_width-1 || x == this->image_width-3) return 0.0;
+        else return 1.0;
+    }
+    if(this->filename.compare("ramp") == 0) {
+        return double(x / this->image_width);
+    }
+    if(this->filename.compare("doom") == 0) {
+        double pixel = 1.0/((x-this->image_width/2)^2+(y-this->image_height/2)^2);
+        pixel = this->engrave_brightness + pixel * this->engrave_contrast;
+        return max(min(pixel,1.0),0.0);
+    }
 }
 
 void LaserEngrave::send_gcode(string msg, StreamOutput* stream) {

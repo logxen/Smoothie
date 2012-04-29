@@ -157,7 +157,7 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     this->scanning = false;
     for (int sl=0;sl<target_scan_line;sl++) {
         // fill the pixel buffer at least once per pass
-        do { fill_pixel_buffer(); wait_us(50); } 
+        do { fill_pixel_buffer(); wait_us(500); } 
         // if there is room in the queue break from the buffer fill loop to add some gcodes to the queue
         while(this->kernel->player->queue.size() >= this->kernel->player->queue.capacity()-3);
         // send the gcodes for a scanline

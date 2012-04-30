@@ -153,6 +153,8 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     // begin engraving
     current_pixel_row = 0;
     current_pixel_col = 0;
+    while(this->pixel_queue.size() > 0)
+        this->pixel_queue.delete_first();
     this->mode = FOLLOW;
     this->scanning = false;
     for (int sl=0;sl<target_scan_line;sl++) {

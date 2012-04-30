@@ -23,6 +23,8 @@ void LaserEngrave::on_module_loaded() {
 
     this->on_config_reload(this);
 
+    this->laser_pin.period_us(5);
+
     this->register_for_event(ON_CONSOLE_LINE_RECEIVED);
 //    this->register_for_event(ON_GCODE_EXECUTE);
     this->register_for_event(ON_SPEED_CHANGE);

@@ -141,7 +141,7 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
 
     while(this->kernel->player->queue.size() > 0) { wait_us(500); } // wait for the queue to empty
 
-    stream->printf("Engraving %s at %f mm/min\r\n", filename.c_str(), engrave_feedrate);
+    stream->printf("Engraving %s at %f mm/min with %d steps per pixel\r\n", this->filename.c_str(), this->engrave_feedrate, this->steps_per_pixel);
     // begin by setting the machine into relative mode
     //TODO: need to cache current mode
     send_gcode("G91\r\n", stream);
@@ -210,9 +210,9 @@ void LaserEngrave::on_block_begin(void* argument){
     if(this->mode == FOLLOW) {
         scanning = !scanning;
         if(scanning) {
-            this->stream->printf("DEBUG: Beginning scan block\r\n");
             this->current_position = this->kernel->stepper->stepped[ALPHA_STEPPER];
             this->laser_on = true;
+            this->stream->printf("DEBUG: Beginning scan block at %d\r\n", this->current_position);
             //this->set_proportional_power(this->current_power);
         }
     }
@@ -220,8 +220,11 @@ void LaserEngrave::on_block_begin(void* argument){
 
 // Turn laser off laser at the end of a move
 void  LaserEngrave::on_block_end(void* argument){
-    this->laser_on = false;
-    this->laser_pin = 0;
+    if(scanning) {
+        this->laser_on = false;
+        this->laser_pin = 0;
+        this->stream->printf("DEBUG: Ended scan block at %d\r\n", this->kernel->stepper->stepped[ALPHA_STEPPER]);
+    }
 }
 
 // When the play/pause button is set to pause, or a module calls the ON_PAUSE event
@@ -290,24 +293,23 @@ void LaserEngrave::fill_pixel_buffer() {
             int n = this->pixel_queue.capacity() - this->pixel_queue.size();
             if(n > 0 && current_pixel_row < this->image_height) {
                 for(int i=0;i<n;i++) {
+                    pixel_queue.push_back(get_pixel(current_pixel_col, current_pixel_row));
                     if(current_pixel_row%2 == 0){
+                        current_pixel_col++;
                         if(current_pixel_col >= this->image_width) {
                             current_pixel_col = this->image_width-1;
                             current_pixel_row++;
                             if(current_pixel_row >= this->image_height)
                                 break;
                         }
-                        pixel_queue.push_back(get_pixel(current_pixel_col, current_pixel_row));
-                        current_pixel_col++;
                     } else {
+                        current_pixel_col--;
                         if(current_pixel_col < 0) {
                             current_pixel_col = 0;
                             current_pixel_row++;
                             if(current_pixel_row >= this->image_height)
                                 break;
                         }
-                        pixel_queue.push_back(get_pixel(current_pixel_col, current_pixel_row));
-                        current_pixel_col--;
                     }
                 }
                 this->stream->printf("DEBUG: added %d pixels to the queue\r\n", n);

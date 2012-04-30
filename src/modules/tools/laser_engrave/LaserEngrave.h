@@ -19,7 +19,7 @@
 #define laser_engrave_feedrate_checksum      1286
 #define laser_engrave_brightness_checksum    63488
 #define laser_engrave_contrast_checksum      50740
-#define steps_per_millimeter_checksum        58088
+#define alpha_steps_per_mm_checksum          46458
 
 #define OFF 0
 #define SOLO 1
@@ -75,7 +75,7 @@ class LaserEngrave : public Module{
         double          engrave_brightness;
         double          engrave_contrast;
 
-        int             steps_per_millimeter;
+        int             alpha_steps_per_mm;
         double          steps_per_pixel;
 
         char mode;

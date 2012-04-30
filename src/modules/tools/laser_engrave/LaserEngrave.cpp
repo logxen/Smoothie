@@ -57,10 +57,7 @@ void LaserEngrave::on_config_reload(void* argument){
     this->default_engrave_feedrate = this->kernel->config->value(laser_engrave_feedrate_checksum)->by_default(1200)->as_number();
     this->default_engrave_brightness = this->kernel->config->value(laser_engrave_feedrate_checksum)->by_default(0.0)->as_number();
     this->default_engrave_contrast = this->kernel->config->value(laser_engrave_feedrate_checksum)->by_default(1.0)->as_number();
-//    this->microseconds_per_step_pulse = this->kernel->config->value(microseconds_per_step_pulse_ckeckusm)->by_default(5)->as_number();
-    this->steps_per_millimeter        = this->kernel->config->value(steps_per_millimeter_checksum       )->by_default(1)->as_number();
-//    this->feed_rate                   = this->kernel->config->value(default_feed_rate_checksum          )->by_default(1)->as_number();
-//    this->acceleration                = this->kernel->config->value(acceleration_checksum               )->by_default(1)->as_number();
+    this->alpha_steps_per_mm = this->kernel->config->value(alpha_steps_per_mm_checksum)->as_number();
 }
 
 // When a new line is received, check if it is a command, and if it is, act upon it
@@ -124,7 +121,7 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     }
 
     target_scan_line = floor(engrave_y / laser_width); // nub of scan liness
-    this->steps_per_pixel = (engrave_x / this->image_width) * steps_per_millimeter;
+    this->steps_per_pixel = (engrave_x / this->image_width) * alpha_steps_per_mm;
     char buffer[16];
     sprintf(buffer, " F%f", engrave_feedrate);
     string feedrate(buffer);
@@ -267,27 +264,7 @@ inline uint32_t LaserEngrave::stepping_tick(uint32_t dummy){
         this->set_proportional_power(this->current_power);
     }
     return 0;
-/*
-        // If we still have steps to do 
-        // TODO: Step using the same timer as the robot, and count steps instead of absolute float position 
-        if( ( this->current_position < this->target_position && this->direction == 1 ) || ( this->current_position > this->target_position && this->direction == -1 ) ){    
-            this->current_position += (double(double(1)/double(this->steps_per_millimeter)))*double(this->direction);
-            this->dir_pin = ((this->direction > 0) ? 1 : 0);
-            this->step_pin = 1;
-        }else{
-            // Move finished
-            if( this->mode == SOLO && this->current_block != NULL ){
-                // In follow mode, the robot takes and releases the block, in solo mode we do
-                this->current_block->release();        
-            } 
-        }
-*/
 }
-/*
-uint32_t LaserEngrave::reset_step_pin(uint32_t dummy){
-    this->step_pin = 0;
-}
-*/
 
 void LaserEngrave::fill_pixel_buffer() {
             int n = this->pixel_queue.capacity() - this->pixel_queue.size();

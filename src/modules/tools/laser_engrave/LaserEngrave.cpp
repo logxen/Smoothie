@@ -208,7 +208,6 @@ void LaserEngrave::on_block_begin(void* argument){
         this->current_position = this->kernel->stepper->stepped[ALPHA_STEPPER];
         this->laser_on = true;
         pop_pixel_to_laser();
-        this->stream->printf("DEBUG: Beginning scan block at %d\r\n", this->current_position);
     }
 }
 
@@ -291,7 +290,7 @@ void LaserEngrave::fill_pixel_buffer() {
                     if(this->current_scan_line >= this->target_scan_line)
                         break;
                 }
-                this->stream->printf("DEBUG: added %d pixels to the queue\r\n", n);
+                //this->stream->printf("DEBUG: added %d pixels to the queue\r\n", n);
             }
 }
 

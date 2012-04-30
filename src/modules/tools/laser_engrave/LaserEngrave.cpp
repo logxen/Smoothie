@@ -57,7 +57,7 @@ void LaserEngrave::on_config_reload(void* argument){
     this->default_engrave_feedrate = this->kernel->config->value(laser_engrave_feedrate_checksum)->by_default(1200)->as_number();
     this->default_engrave_brightness = this->kernel->config->value(laser_engrave_feedrate_checksum)->by_default(0.0)->as_number();
     this->default_engrave_contrast = this->kernel->config->value(laser_engrave_feedrate_checksum)->by_default(1.0)->as_number();
-    this->alpha_steps_per_mm = this->kernel->config->value(alpha_steps_per_mm_checksum)->as_number();
+    this->alpha_steps_per_mm = this->kernel->config->value(alpha_steps_per_mm_checksum)->by_default(1)->as_number();
 }
 
 // When a new line is received, check if it is a command, and if it is, act upon it
@@ -178,7 +178,7 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     // return the machine to previous settings
     //TODO: actually check what old mode was instead of assuming absolute
     send_gcode("G90\r\n", stream);
-    stream->printf("Engrave completed\r\n");
+    stream->printf("Engrave completed with %d pixels remaining in the queue\r\n", this->pixel_queue.size());
 /*
     // Open file
     FILE *lp = fopen(filename.c_str(), "r");

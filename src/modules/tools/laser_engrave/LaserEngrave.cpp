@@ -198,6 +198,7 @@ void LaserEngrave::on_gcode_execute(void* argument){
     Gcode* gcode = static_cast<Gcode*>(argument);
     if(this->mode == FOLLOW) {
         scanning = !scanning;
+        pop_pixel_to_laser();
     }
 }
 
@@ -207,7 +208,7 @@ void LaserEngrave::on_block_begin(void* argument){
     if(this->mode == FOLLOW && scanning) {
         this->current_position = this->kernel->stepper->stepped[ALPHA_STEPPER];
         this->laser_on = true;
-        pop_pixel_to_laser();
+        this->set_proportional_power(this->current_power);
     }
 }
 

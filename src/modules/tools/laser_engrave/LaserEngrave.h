@@ -32,6 +32,7 @@ class LaserEngrave : public Module{
         void on_config_reload(void* argument);
         void on_console_line_received( void* argument );
         void laser_engrave_command( string parameters, StreamOutput* stream );
+        void on_gcode_execute(void* argument);
         void on_block_end(void* argument);
         void on_block_begin(void* argument);
         void on_play(void* argument);

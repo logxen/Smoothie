@@ -29,6 +29,7 @@ void LaserEngrave::on_module_loaded() {
     this->register_for_event(ON_SPEED_CHANGE);
     this->register_for_event(ON_PLAY);
     this->register_for_event(ON_PAUSE);
+    this->register_for_event(ON_GCODE_EXECUTE);
     this->register_for_event(ON_BLOCK_BEGIN);
     this->register_for_event(ON_BLOCK_END);
 
@@ -193,27 +194,28 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
 */
 }
 
+void LaserEngrave::on_gcode_execute(void* argument){
+    Gcode* gcode = static_cast<Gcode*>(argument);
+    if(this->mode == FOLLOW) {
+        scanning = !scanning;
+    }
+}
+
 // Set laser power at the beginning of a block
 void LaserEngrave::on_block_begin(void* argument){
     Block* block = static_cast<Block*>(argument);
-    if(this->mode == FOLLOW) {
-        scanning = !scanning;
-        if(scanning) {
-            this->current_position = this->kernel->stepper->stepped[ALPHA_STEPPER];
-            this->laser_on = true;
-            pop_pixel_to_laser();
-            this->stream->printf("DEBUG: Beginning scan block at %d\r\n", this->current_position);
-        }
+    if(this->mode == FOLLOW && scanning) {
+        this->current_position = this->kernel->stepper->stepped[ALPHA_STEPPER];
+        this->laser_on = true;
+        pop_pixel_to_laser();
+        this->stream->printf("DEBUG: Beginning scan block at %d\r\n", this->current_position);
     }
 }
 
 // Turn laser off laser at the end of a move
 void  LaserEngrave::on_block_end(void* argument){
-    if(scanning) {
-        this->laser_on = false;
-        this->laser_pin = 0;
-        this->stream->printf("DEBUG: Ended scan block at %d\r\n", this->kernel->stepper->stepped[ALPHA_STEPPER]);
-    }
+    this->laser_on = false;
+    this->laser_pin = 0;
 }
 
 // When the play/pause button is set to pause, or a module calls the ON_PAUSE event
@@ -343,7 +345,7 @@ double LaserEngrave::get_pixel(int x, int y) {
         break;
     }
     pixel = max(min(pixel,1.0),0.0);
-    pixel = this->engrave_brightness + pixel * (1-this->engrave_brightness) * this->engrave_contrast;
+    pixel = this->engrave_brightness + pixel * (1.0-this->engrave_brightness) * this->engrave_contrast;
     return pixel;
 }
 

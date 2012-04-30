@@ -295,7 +295,7 @@ void LaserEngrave::fill_pixel_buffer() {
 
 void LaserEngrave::advance_scan_line() {
                             this->current_scan_line++;
-                            if(floor(this->current_scan_line * this->pixels_per_scan_line) >= this->current_pixel_row)
+                            if(floor(this->current_scan_line * this->pixels_per_scan_line) >= this->current_pixel_row+1)
                                 this->current_pixel_row++;
 }
 

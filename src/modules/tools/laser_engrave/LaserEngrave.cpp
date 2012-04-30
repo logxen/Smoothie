@@ -186,7 +186,10 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     stream->printf("Engrave completed with %d pixels remaining in the queue\r\n", this->pixel_queue.size());
 
     // close file
-    if(this->file != NULL) fclose(this->file);
+    if(this->file != NULL) {
+        fclose(this->file);
+        this->file = NULL;
+    }
 /*
     // Open file
     FILE *lp = fopen(filename.c_str(), "r");

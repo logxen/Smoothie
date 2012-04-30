@@ -55,8 +55,8 @@ void LaserEngrave::on_module_loaded() {
 void LaserEngrave::on_config_reload(void* argument){
     this->laser_width = this->kernel->config->value(laser_width_checksum)->by_default(0.25)->as_number();
     this->default_engrave_feedrate = this->kernel->config->value(laser_engrave_feedrate_checksum)->by_default(1200)->as_number();
-    this->default_engrave_brightness = this->kernel->config->value(laser_engrave_feedrate_checksum)->by_default(0.0)->as_number();
-    this->default_engrave_contrast = this->kernel->config->value(laser_engrave_feedrate_checksum)->by_default(1.0)->as_number();
+    this->default_engrave_brightness = this->kernel->config->value(laser_engrave_brightness_checksum)->by_default(0.0)->as_number();
+    this->default_engrave_contrast = this->kernel->config->value(laser_engrave_contrast_checksum)->by_default(1.0)->as_number();
     this->alpha_steps_per_mm = this->kernel->config->value(alpha_steps_per_mm_checksum)->by_default(1)->as_number();
 }
 

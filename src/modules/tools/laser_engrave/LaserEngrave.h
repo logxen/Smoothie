@@ -39,6 +39,7 @@ class LaserEngrave : public Module{
         uint32_t stepping_tick(uint32_t dummy);
 //        uint32_t reset_step_pin(uint32_t dummy);
 
+        void init_member_vars();
         void fill_pixel_buffer();
         void advance_scan_line();
         void pop_pixel_to_laser();

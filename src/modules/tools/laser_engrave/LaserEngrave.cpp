@@ -26,31 +26,16 @@ void LaserEngrave::on_module_loaded() {
     this->laser_pin.period_us(5);
 
     this->register_for_event(ON_CONSOLE_LINE_RECEIVED);
-//    this->register_for_event(ON_GCODE_EXECUTE);
     this->register_for_event(ON_SPEED_CHANGE);
     this->register_for_event(ON_PLAY);
     this->register_for_event(ON_PAUSE);
     this->register_for_event(ON_BLOCK_BEGIN);
     this->register_for_event(ON_BLOCK_END);
 
-    // Start values
-    this->current_scan_line = 0;
-    this->target_scan_line = 0;
-    this->start_position = 0;
-    this->target_position = 0;
-    this->current_position = 0;
-    this->current_power = 0;
-    this->mode = OFF;
-    this->scanning = false;
-    this->paused = false;
-
-    // Update speed every *acceleration_ticks_per_second*
-    // TODO: Make this an independent setting
-    //this->kernel->slow_ticker->attach( this->kernel->stepper->acceleration_ticks_per_second , this, &LaserEngrave::acceleration_tick );
+    init_member_vars();
 
     // Initiate main_interrupt timer and step reset timer
     this->kernel->step_ticker->attach( this, &LaserEngrave::stepping_tick );
-//    this->kernel->step_ticker->reset_attach( this, &LaserEngrave::reset_step_pin );
 }
 
 // Get config
@@ -77,6 +62,8 @@ void LaserEngrave::on_console_line_received( void* argument ){
 }
 
 void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* stream ){
+    init_member_vars();
+
     // Get filename
     this->filename          = shift_parameter( parameters );
     this->stream = stream;
@@ -266,6 +253,19 @@ inline uint32_t LaserEngrave::stepping_tick(uint32_t dummy){
         pop_pixel_to_laser();
     }
     return 0;
+}
+
+void LaserEngrave::init_member_vars() {
+    // Start values
+    this->current_scan_line = 0;
+    this->target_scan_line = 0;
+    this->start_position = 0;
+    this->target_position = 0;
+    this->current_position = 0;
+    this->current_power = 0;
+    this->mode = OFF;
+    this->scanning = false;
+    this->paused = false;
 }
 
 void LaserEngrave::fill_pixel_buffer() {

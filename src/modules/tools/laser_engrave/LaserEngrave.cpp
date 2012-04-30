@@ -230,23 +230,6 @@ void LaserEngrave::on_play(void* argument){
     this->set_proportional_power(this->current_power);
 }
 
-/*
-// Turn laser on/off depending on received GCodes
-void LaserEngrave::on_gcode_execute(void* argument){
-    Gcode* gcode = static_cast<Gcode*>(argument);
-    this->laser_on = false;
-    if( gcode->has_letter('G' )){
-        int code = gcode->get_value('G');
-        if( code == 0 ){                    // G0
-            this->laser_pin = 0;
-            this->laser_on =  false;
-        }else if( code >= 1 && code <= 3 ){ // G1, G2, G3
-            this->laser_on =  true;
-        }
-    }
-}
-*/
-
 inline uint32_t LaserEngrave::stepping_tick(uint32_t dummy){
     if( this->paused || this->mode == OFF || !this->laser_on ){ return 0; }
 
@@ -271,41 +254,41 @@ void LaserEngrave::init_member_vars() {
 }
 
 void LaserEngrave::fill_pixel_buffer() {
-            int n = this->pixel_queue.capacity() - this->pixel_queue.size();
-            if(n > 0 && this->current_scan_line < this->target_scan_line) {
-                for(int i=0;i<n;i++) {
-                    this->pixel_queue.push_back(get_pixel(this->current_pixel_col, this->current_pixel_row));
-                    if(this->current_scan_line%2 == 0){
-                        this->current_pixel_col++;
-                        if(this->current_pixel_col >= this->image_width) {
-                            this->current_pixel_col = this->image_width-1;
-                            advance_scan_line();
-                        }
-                    } else {
-                        this->current_pixel_col--;
-                        if(this->current_pixel_col < 0) {
-                            this->current_pixel_col = 0;
-                            advance_scan_line();
-                        }
-                    }
-                    if(this->current_scan_line >= this->target_scan_line)
-                        break;
+    int n = this->pixel_queue.capacity() - this->pixel_queue.size();
+    if(n > 0 && this->current_scan_line < this->target_scan_line) {
+        for(int i=0;i<n;i++) {
+            this->pixel_queue.push_back(get_pixel(this->current_pixel_col, this->current_pixel_row));
+            if(this->current_scan_line%2 == 0){
+                this->current_pixel_col++;
+                if(this->current_pixel_col >= this->image_width) {
+                    this->current_pixel_col = this->image_width-1;
+                    advance_scan_line();
                 }
-                //this->stream->printf("DEBUG: added %d pixels to the queue\r\n", n);
+            } else {
+                this->current_pixel_col--;
+                if(this->current_pixel_col < 0) {
+                    this->current_pixel_col = 0;
+                    advance_scan_line();
+                }
             }
+            if(this->current_scan_line >= this->target_scan_line)
+                break;
+        }
+        //this->stream->printf("DEBUG: added %d pixels to the queue\r\n", n);
+    }
 }
 
 void LaserEngrave::advance_scan_line() {
-                            this->current_scan_line++;
-                            if(floor(this->current_scan_line * this->pixels_per_scan_line) >= this->current_pixel_row+1)
-                                this->current_pixel_row++;
+    this->current_scan_line++;
+    if(floor(this->current_scan_line * this->pixels_per_scan_line) >= this->current_pixel_row+1)
+        this->current_pixel_row++;
 }
 
 void LaserEngrave::pop_pixel_to_laser() {
-        double pixel;
-        this->pixel_queue.pop_front(pixel);
-        this->current_power = 1 - pixel;
-        this->set_proportional_power(this->current_power);
+    double pixel;
+    this->pixel_queue.pop_front(pixel);
+    this->current_power = 1 - pixel;
+    this->set_proportional_power(this->current_power);
 }
 
 #define BLACK_CHECKSUM          62462

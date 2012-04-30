@@ -121,7 +121,7 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     }
 
     target_scan_line = floor(engrave_y / laser_width); // nub of scan liness
-    this->steps_per_pixel = (engrave_x / this->image_width) * alpha_steps_per_mm;
+    this->steps_per_pixel = floor((engrave_x / this->image_width) * alpha_steps_per_mm);
     char buffer[16];
     sprintf(buffer, " F%f", engrave_feedrate);
     string feedrate(buffer);
@@ -211,8 +211,8 @@ void LaserEngrave::on_block_begin(void* argument){
         if(scanning) {
             this->current_position = this->kernel->stepper->stepped[ALPHA_STEPPER];
             this->laser_on = true;
+            pop_pixel_to_laser();
             this->stream->printf("DEBUG: Beginning scan block at %d\r\n", this->current_position);
-            //this->set_proportional_power(this->current_power);
         }
     }
 }
@@ -260,10 +260,7 @@ inline uint32_t LaserEngrave::stepping_tick(uint32_t dummy){
 
     if(this->kernel->stepper->stepped[ALPHA_STEPPER] - this->current_position > this->steps_per_pixel) {
         this->current_position += this->steps_per_pixel;
-        double pixel;
-        this->pixel_queue.pop_front(pixel);
-        this->current_power = 1 - pixel;
-        this->set_proportional_power(this->current_power);
+        pop_pixel_to_laser();
     }
     return 0;
 }
@@ -293,6 +290,13 @@ void LaserEngrave::fill_pixel_buffer() {
                 }
                 this->stream->printf("DEBUG: added %d pixels to the queue\r\n", n);
             }
+}
+
+void LaserEngrave::pop_pixel_to_laser() {
+        double pixel;
+        this->pixel_queue.pop_front(pixel);
+        this->current_power = 1 - pixel;
+        this->set_proportional_power(this->current_power);
 }
 
 #define BLACK_CHECKSUM          62462

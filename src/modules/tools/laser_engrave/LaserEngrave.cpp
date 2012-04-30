@@ -315,34 +315,36 @@ void LaserEngrave::pop_pixel_to_laser() {
 
 double LaserEngrave::get_pixel(int x, int y) {
     unsigned short check_sum = get_checksum( this->filename );
+    double pixel = 1.0;
 
     // Act depending on command
     switch( check_sum ){
     case BLACK_CHECKSUM:
-        return 0.0;
+        pixel = 0.0;
         break;
     case WHITE_CHECKSUM:
-        return 1.0;
+        pixel = 1.0;
         break;
     case CHECK_CHECKSUM:
-        if((x+y)%2 == 0) return 0.0;
-        else return 1.0;
+        if((x+y)%2 == 0) pixel = 0.0;
+        else pixel = 1.0;
         break;
     case SIDES_CHECKSUM:
         if(x == 0 || x == 3 || x == this->image_width-1 || x == this->image_width-4)
                 //|| y == 0 || y == 3 || y == this->image_height-1 || y == this->image_height-4)
-            return 0.0;
-        else return 1.0;
+            pixel = 0.0;
+        else pixel = 1.0;
         break;
     case RAMP_CHECKSUM:
-        return double(x / this->image_width);
+        pixel = double(x) / double(this->image_width);
         break;
     case DOOM_CHECKSUM:
-        double pixel = 1.0/((x-this->image_width/2)^2+(y-this->image_height/2)^2);
-        pixel = this->engrave_brightness + pixel * this->engrave_contrast;
-        return max(min(pixel,1.0),0.0);
+        pixel = 1.0/((x-this->image_width/2)^2+(y-this->image_height/2)^2);
         break;
     }
+    pixel = max(min(pixel,1.0),0.0);
+    pixel = this->engrave_brightness + pixel * (1-this->engrave_brightness) * this->engrave_contrast;
+    return pixel;
 }
 
 void LaserEngrave::send_gcode(string msg, StreamOutput* stream) {

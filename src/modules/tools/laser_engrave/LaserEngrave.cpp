@@ -120,8 +120,9 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
         engrave_contrast = default_engrave_contrast;
     }
 
-    target_scan_line = floor(engrave_y / laser_width); // nub of scan liness
-    this->steps_per_pixel = floor((engrave_x / this->image_width) * alpha_steps_per_mm);
+    this->target_scan_line = floor(this->engrave_y / this->laser_width); // total number of scan lines
+    this->steps_per_pixel = floor((this->engrave_x / this->image_width) * alpha_steps_per_mm);
+    this->pixels_per_scan_line = double(this->engrave_y) / double(target_scan_line);
     char buffer[16];
     sprintf(buffer, " F%f", engrave_feedrate);
     string feedrate(buffer);
@@ -267,29 +268,33 @@ inline uint32_t LaserEngrave::stepping_tick(uint32_t dummy){
 
 void LaserEngrave::fill_pixel_buffer() {
             int n = this->pixel_queue.capacity() - this->pixel_queue.size();
-            if(n > 0 && current_pixel_row < this->image_height) {
+            if(n > 0 && this->current_scan_line < this->target_scan_line) {
                 for(int i=0;i<n;i++) {
-                    pixel_queue.push_back(get_pixel(current_pixel_col, current_pixel_row));
-                    if(current_pixel_row%2 == 0){
-                        current_pixel_col++;
-                        if(current_pixel_col >= this->image_width) {
-                            current_pixel_col = this->image_width-1;
-                            current_pixel_row++;
-                            if(current_pixel_row >= this->image_height)
-                                break;
+                    this->pixel_queue.push_back(get_pixel(this->current_pixel_col, this->current_pixel_row));
+                    if(this->current_scan_line%2 == 0){
+                        this->current_pixel_col++;
+                        if(this->current_pixel_col >= this->image_width) {
+                            this->current_pixel_col = this->image_width-1;
+                            advance_scan_line();
                         }
                     } else {
-                        current_pixel_col--;
-                        if(current_pixel_col < 0) {
-                            current_pixel_col = 0;
-                            current_pixel_row++;
-                            if(current_pixel_row >= this->image_height)
-                                break;
+                        this->current_pixel_col--;
+                        if(this->current_pixel_col < 0) {
+                            this->current_pixel_col = 0;
+                            advance_scan_line();
                         }
                     }
+                    if(this->current_scan_line >= this->target_scan_line)
+                        break;
                 }
                 this->stream->printf("DEBUG: added %d pixels to the queue\r\n", n);
             }
+}
+
+void LaserEngrave::advance_scan_line() {
+                            this->current_scan_line++;
+                            if(floor(this->current_scan_line * this->pixels_per_scan_line) >= this->current_pixel_row)
+                                this->current_pixel_row++;
 }
 
 void LaserEngrave::pop_pixel_to_laser() {

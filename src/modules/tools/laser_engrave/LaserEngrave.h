@@ -40,6 +40,7 @@ class LaserEngrave : public Module{
 //        uint32_t reset_step_pin(uint32_t dummy);
 
         void fill_pixel_buffer();
+        void advance_scan_line();
         void pop_pixel_to_laser();
         double get_pixel(int x, int y);
         void send_gcode(string msg, StreamOutput* stream);
@@ -78,6 +79,7 @@ class LaserEngrave : public Module{
 
         int             alpha_steps_per_mm;
         int             steps_per_pixel;
+        double          pixels_per_scan_line;
 
         char mode;
         bool scanning;

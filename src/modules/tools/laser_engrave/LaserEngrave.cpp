@@ -90,10 +90,10 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     gcode.stream = stream;
 
     // ** fake fileheader system **
-    this->image_width = 10;
+    //this->image_width = 10;
     if(gcode.has_letter('X'))
         this->image_width = gcode.get_value('X');
-    this->image_height = 10;
+    //this->image_height = 10;
     if(gcode.has_letter('Y'))
         this->image_height = gcode.get_value('Y');
     this->image_bpp = 8; // not yet used

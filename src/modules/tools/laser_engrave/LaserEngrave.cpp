@@ -71,6 +71,20 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
 
     this->stream = stream;
 
+    // Get other parameters
+    Gcode gcode = Gcode();
+    gcode.command = parameters;
+    gcode.stream = stream;
+
+    // ** fake fileheader system **
+    this->image_width = 10;
+    if(gcode.has_letter('X'))
+        this->image_width = gcode.get_value('X');
+    this->image_height = 10;
+    if(gcode.has_letter('Y'))
+        this->image_height = gcode.get_value('Y');
+    this->image_bpp = 8; // not yet used
+
     // Read fileheader
     if(this->file != NULL) {
         int array_offset;
@@ -83,20 +97,6 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
         fread(&this->image_bpp,2,1,this->file);
         fseek(this->file, array_offset, SEEK_SET);
     }
-
-    // Get other parameters
-    Gcode gcode = Gcode();
-    gcode.command = parameters;
-    gcode.stream = stream;
-
-    // ** fake fileheader system **
-    //this->image_width = 10;
-    if(gcode.has_letter('X'))
-        this->image_width = gcode.get_value('X');
-    //this->image_height = 10;
-    if(gcode.has_letter('Y'))
-        this->image_height = gcode.get_value('Y');
-    //this->image_bpp = 8; // not yet used
 
     if(gcode.has_letter('I')) {
         engrave_x = gcode.get_value('I');

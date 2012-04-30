@@ -322,8 +322,8 @@ double LaserEngrave::get_pixel(int x, int y) {
         else return 1.0;
         break;
     case SIDES_CHECKSUM:
-        if(x == 0 || x == 3 || x == this->image_width-1 || x == this->image_width-4
-                || y == 0 || y == 3 || y == this->image_height-1 || y == this->image_height-4)
+        if(x == 0 || x == 3 || x == this->image_width-1 || x == this->image_width-4)
+                //|| y == 0 || y == 3 || y == this->image_height-1 || y == this->image_height-4)
             return 0.0;
         else return 1.0;
         break;

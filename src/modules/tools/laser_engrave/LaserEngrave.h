@@ -53,6 +53,7 @@ class LaserEngrave : public Module{
         bool   laser_on;     // Laser status
 
         string filename;
+        FILE* file;
         StreamOutput* stream;
 
         double          laser_width;
@@ -62,7 +63,7 @@ class LaserEngrave : public Module{
 
         int  image_width;
         int  image_height;
-        int  image_bpp;
+        short  image_bpp;
         int  current_scan_line;
         int  current_pixel_row;
         int  current_pixel_col;

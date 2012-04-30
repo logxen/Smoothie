@@ -67,9 +67,23 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
 
     // Get filename
     this->filename          = shift_parameter( parameters );
+    this->file = fopen(this->filename.c_str(), "r");
+
     this->stream = stream;
 
     // Read fileheader
+    if(this->file != NULL) {
+        int array_offset;
+        fseek(this->file, 10, SEEK_SET);
+        fread(&array_offset, 4,1,this->file);
+        fseek(this->file, 18, SEEK_SET);
+        fread(&this->image_width,4,1,this->file);
+        fread(&this->image_height,4,1,this->file);
+        fseek(this->file, 2, SEEK_CUR);
+        fread(&this->image_bpp,2,1,this->file);
+        fseek(this->file, array_offset, SEEK_SET);
+    }
+
     // Get other parameters
     Gcode gcode = Gcode();
     gcode.command = parameters;
@@ -170,6 +184,9 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     //TODO: actually check what old mode was instead of assuming absolute
     send_gcode("G90\r\n", stream);
     stream->printf("Engrave completed with %d pixels remaining in the queue\r\n", this->pixel_queue.size());
+
+    // close file
+    if(this->file != NULL) fclose(this->file);
 /*
     // Open file
     FILE *lp = fopen(filename.c_str(), "r");

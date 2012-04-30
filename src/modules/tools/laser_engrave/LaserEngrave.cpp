@@ -96,7 +96,7 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     //this->image_height = 10;
     if(gcode.has_letter('Y'))
         this->image_height = gcode.get_value('Y');
-    this->image_bpp = 8; // not yet used
+    //this->image_bpp = 8; // not yet used
 
     if(gcode.has_letter('I')) {
         engrave_x = gcode.get_value('I');

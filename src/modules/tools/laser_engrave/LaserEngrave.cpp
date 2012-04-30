@@ -340,7 +340,7 @@ double LaserEngrave::get_pixel(int x, int y) {
         pixel = double(x) / double(this->image_width);
         break;
     case DOOM_CHECKSUM:
-        pixel = ((double(x)-double(this->image_width)/2.0)^2+(double(y)-double(this->image_height)/2.0)^2)/1250.0;
+        pixel = double( ((x-this->image_width/2)^2) + ((y-this->image_height/2)^2) ) / 1250.0;
         break;
     }
     pixel = max(min(pixel,1.0),0.0);

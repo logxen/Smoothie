@@ -190,28 +190,6 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
         fclose(this->file);
         this->file = NULL;
     }
-/*
-    // Open file
-    FILE *lp = fopen(filename.c_str(), "r");
-    string buffer;
-    int c;
-
-    // Print each line of the file
-    while ((c = fgetc (lp)) != EOF){
-        if (c == '\n'){
-            stream->printf("%s\n", buffer.c_str());
-            struct SerialMessage message;
-            message.message = buffer;
-            message.stream = stream;
-            this->kernel->call_event(ON_CONSOLE_LINE_RECEIVED, &message);
-            buffer.clear();
-        }else{
-            buffer += c;
-        }
-    };
-
-    fclose(lp);
-*/
 }
 
 void LaserEngrave::on_gcode_execute(void* argument){

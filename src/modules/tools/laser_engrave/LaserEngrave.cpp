@@ -23,7 +23,7 @@ void LaserEngrave::on_module_loaded() {
 
     this->on_config_reload(this);
 
-    this->laser_pin.period_us(5);
+    this->laser_pin.period_us(64);
 
     this->register_for_event(ON_CONSOLE_LINE_RECEIVED);
     this->register_for_event(ON_SPEED_CHANGE);
@@ -356,7 +356,7 @@ double LaserEngrave::get_pixel(int x, int y) {
     }
 
     pixel = max(min(pixel,1.0),0.0);
-    pixel *= pixel; // logify!
+    //pixel *= pixel; // logify!
     if(pixel < 1.0) // 100% white should always be 100% white
         pixel = this->engrave_brightness + pixel * (1.0-this->engrave_brightness) * this->engrave_contrast;
     this->stream->printf("DEBUG: get_pixel(%d, %d) returned: %f\r\n", x, y, pixel);

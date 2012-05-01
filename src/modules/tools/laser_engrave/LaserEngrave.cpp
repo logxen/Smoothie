@@ -95,6 +95,10 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
         fseek(this->file, 2, SEEK_CUR);
         fread(&this->image_bpp,2,1,this->file);
         fseek(this->file, this->image_array_offset, SEEK_SET);
+        if(this->image_bpp != 8) {
+            fclose(this->file);
+            this->file = NULL;
+        }
     }
 
     if(gcode.has_letter('I')) {
@@ -299,7 +303,12 @@ double LaserEngrave::get_pixel(int x, int y) {
     double pixel = 1.0;
 
     if(this->file != NULL) {
-        
+        int bytes_per_row = (this->image_width * this->image_bpp) / 8;
+        bytes_per_row += bits_per_row % 4 == 0 ? 0 : 4 - bits_per_row % 4;
+        int pixel_offset = y * total_bits_per_row + x * this->image_bpp;
+        int pixel_offset = bits_pixel_offset / 8 + /cry;
+        fseek(this->file, this->image_array_offset + pixel_offset, SEEK_SET);
+        fread(&this->image_array_offset, 4,1,this->file);
     } else {
         // Act depending on command
         unsigned short check_sum = get_checksum( this->filename );

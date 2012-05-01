@@ -311,7 +311,6 @@ double LaserEngrave::get_pixel(int x, int y) {
         fseek(this->file, this->image_array_offset + pixel_offset, SEEK_SET);
         fread(&c, 1,1,this->file);
         pixel = double(c) / 255.0;
-        //this->stream->printf("DEBUG: read pixel %d, %d from bmp: %f\r\n", x, y, pixel);
     } else {
         // Act depending on command
         unsigned short check_sum = get_checksum( this->filename );
@@ -328,7 +327,6 @@ double LaserEngrave::get_pixel(int x, int y) {
             break;
         case SIDES_CHECKSUM:
             if(x == 0 || x == 3 || x == this->image_width-1 || x == this->image_width-4)
-                    //|| y == 0 || y == 3 || y == this->image_height-1 || y == this->image_height-4)
                 pixel = 0.0;
             else pixel = 1.0;
             break;
@@ -344,6 +342,7 @@ double LaserEngrave::get_pixel(int x, int y) {
     pixel = max(min(pixel,1.0),0.0);
     if(pixel < 1.0) // a value of white should always be true white
         pixel = this->engrave_brightness + pixel * (1.0-this->engrave_brightness) * this->engrave_contrast;
+    //this->stream->printf("DEBUG: get_pixel(%d, %d) returned: %f\r\n", x, y, pixel);
     return pixel;
 }
 

@@ -305,8 +305,8 @@ double LaserEngrave::get_pixel(int x, int y) {
     if(this->file != NULL) {
         char c;
         int bytes_per_row = (this->image_width * this->image_bpp) / 8;
-        bytes_per_row += bits_per_row % 4 == 0 ? 0 : 4 - bits_per_row % 4;
-        int pixel_offset = y * total_bits_per_row + x;
+        bytes_per_row += bytes_per_row % 4 == 0 ? 0 : 4 - bytes_per_row % 4;
+        int pixel_offset = y * bytes_per_row + x;
         fseek(this->file, this->image_array_offset + pixel_offset, SEEK_SET);
         fread(&c, 1,1,this->file);
         pixel = double(c) / 255.0;

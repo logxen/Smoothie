@@ -129,8 +129,8 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
     }
 
     this->target_scan_line = floor(this->engrave_y / this->laser_width); // total number of scan lines
-    this->steps_per_pixel = floor((this->engrave_x / this->image_width) * alpha_steps_per_mm);
-    this->pixels_per_scan_line = double(this->engrave_y) / double(target_scan_line);
+    this->steps_per_pixel = floor(this->engrave_x / this->image_width) * alpha_steps_per_mm;
+    this->pixels_per_scan_line = double(this->image_height) / double(target_scan_line);
     char buffer[16];
     sprintf(buffer, " F%f", engrave_feedrate);
     string feedrate(buffer);
@@ -200,7 +200,11 @@ void LaserEngrave::on_gcode_execute(void* argument){
     Gcode* gcode = static_cast<Gcode*>(argument);
     if(this->mode == FOLLOW) {
         scanning = !scanning;
-        pop_pixel_to_laser();
+        if(scanning)
+        {
+            this->step_counter = 0;
+            pop_pixel_to_laser();
+        }
     }
 }
 
@@ -208,7 +212,6 @@ void LaserEngrave::on_gcode_execute(void* argument){
 void LaserEngrave::on_block_begin(void* argument){
     Block* block = static_cast<Block*>(argument);
     if(this->mode == FOLLOW && scanning) {
-        this->current_position = this->kernel->stepper->stepped[ALPHA_STEPPER];
         this->laser_on = true;
         this->set_proportional_power(this->current_power);
     }
@@ -235,9 +238,14 @@ void LaserEngrave::on_play(void* argument){
 inline uint32_t LaserEngrave::stepping_tick(uint32_t dummy){
     if( this->paused || this->mode == OFF || !this->laser_on ){ return 0; }
 
-    if(this->kernel->stepper->stepped[ALPHA_STEPPER] - this->current_position > this->steps_per_pixel) {
-        this->current_position += this->steps_per_pixel;
-        pop_pixel_to_laser();
+    if(this->current_position != this->kernel->stepper->stepped[ALPHA_STEPPER])
+    {
+        this->current_position = this->kernel->stepper->stepped[ALPHA_STEPPER];
+        this->step_counter++;
+        if(this->step_counter >= this->steps_per_pixel) {
+            this->step_counter = 0;
+            pop_pixel_to_laser();
+        }
     }
     return 0;
 }

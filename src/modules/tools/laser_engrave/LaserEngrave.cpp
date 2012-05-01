@@ -99,7 +99,7 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
             fclose(this->file);
             this->file = NULL;
         }
-        this->stream->printf("DEBUG: loaded %s, %dx%d pixels, %d bpp", this->filename, this->image_width, this->image_height, this->image_bpp);
+        this->stream->printf("DEBUG: loaded %s, %dx%d pixels, %d bpp", this->filename.c_str(), this->image_width, this->image_height, this->image_bpp);
     }
 
     if(gcode.has_letter('I')) {

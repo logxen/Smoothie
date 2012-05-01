@@ -204,6 +204,7 @@ void LaserEngrave::on_gcode_execute(void* argument){
         {
             this->step_counter = 0;
             pop_pixel_to_laser();
+            this->stream->printf("DEBUG: Beginning scan line\r\n");
         }
     }
 }
@@ -290,7 +291,7 @@ void LaserEngrave::fill_pixel_buffer() {
             if(this->current_scan_line >= this->target_scan_line)
                 break;
         }
-        //this->stream->printf("DEBUG: added %d pixels to the queue\r\n", n);
+        this->stream->printf("DEBUG: added %d pixels to the queue\r\n", n);
     }
 }
 
@@ -357,7 +358,7 @@ double LaserEngrave::get_pixel(int x, int y) {
     pixel *= pixel; // logify!
     if(pixel < 1.0) // 100% white should always be 100% white
         pixel = this->engrave_brightness + pixel * (1.0-this->engrave_brightness) * this->engrave_contrast;
-    //this->stream->printf("DEBUG: get_pixel(%d, %d) returned: %f\r\n", x, y, pixel);
+    this->stream->printf("DEBUG: get_pixel(%d, %d) returned: %f\r\n", x, y, pixel);
     return pixel;
 }
 

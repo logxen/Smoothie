@@ -253,6 +253,8 @@ inline uint32_t LaserEngrave::stepping_tick(uint32_t dummy){
 void LaserEngrave::init_member_vars() {
     // Start values
     this->current_scan_line = 0;
+    this->current_pixel_col = 0;
+    this->current_pixel_row = 0;
     this->target_scan_line = 0;
     this->start_position = 0;
     this->target_position = 0;
@@ -264,10 +266,14 @@ void LaserEngrave::init_member_vars() {
 }
 
 void LaserEngrave::fill_pixel_buffer() {
+    // find how many pixels it will take to fill the buffer
     int n = this->pixel_queue.capacity() - this->pixel_queue.size();
     if(n > 0 && this->current_scan_line < this->target_scan_line) {
+        // fill the buffer
         for(int i=0;i<n;i++) {
+            // first push a pixel
             this->pixel_queue.push_back(get_pixel(this->current_pixel_col, this->current_pixel_row));
+            // then advance to the next pixel for next pass
             if(this->current_scan_line%2 == 0){
                 this->current_pixel_col++;
                 if(this->current_pixel_col >= this->image_width) {
@@ -290,7 +296,7 @@ void LaserEngrave::fill_pixel_buffer() {
 
 void LaserEngrave::advance_scan_line() {
     this->current_scan_line++;
-    if(floor(this->current_scan_line * this->pixels_per_scan_line) >= this->current_pixel_row+1)
+    if(floor(this->current_scan_line * this->pixels_per_scan_line) > this->current_pixel_row)
         this->current_pixel_row++;
 }
 

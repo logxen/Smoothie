@@ -243,7 +243,7 @@ inline uint32_t LaserEngrave::stepping_tick(uint32_t dummy){
     {
         this->current_position = this->kernel->stepper->stepped[ALPHA_STEPPER];
         this->step_counter++;
-        if(this->step_counter >= this->steps_per_pixel) {
+        if(this->step_counter > this->steps_per_pixel) {
             this->step_counter = 0;
             pop_pixel_to_laser();
         }
@@ -304,7 +304,7 @@ void LaserEngrave::advance_scan_line() {
 void LaserEngrave::pop_pixel_to_laser() {
     double pixel;
     this->pixel_queue.pop_front(pixel);
-    this->current_power = 1 - pixel;
+    this->current_power = 1.0 - pixel;
     this->set_proportional_power(this->current_power);
 }
 
@@ -322,7 +322,8 @@ double LaserEngrave::get_pixel(int x, int y) {
         char c;
         int bytes_per_row = (this->image_width * this->image_bpp) / 8;
         bytes_per_row += bytes_per_row % 4 == 0 ? 0 : 4 - bytes_per_row % 4;
-        int pixel_offset = y * bytes_per_row + x;
+        int row = this->image_height-1 - y;
+        int pixel_offset = row * bytes_per_row + x;
         fseek(this->file, this->image_array_offset + pixel_offset, SEEK_SET);
         fread(&c, 1,1,this->file);
         pixel = double(c) / 255.0;

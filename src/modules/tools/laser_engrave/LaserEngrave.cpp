@@ -99,7 +99,7 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
             fclose(this->file);
             this->file = NULL;
         }
-        this->stream->printf("DEBUG: loaded %s, %dx%d pixels, %d bpp", this->filename.c_str(), this->image_width, this->image_height, this->image_bpp);
+        this->stream->printf("DEBUG: loaded %s, %dx%d pixels, %d bpp\r\n", this->filename.c_str(), this->image_width, this->image_height, this->image_bpp);
     }
 
     if(gcode.has_letter('I')) {
@@ -311,7 +311,7 @@ double LaserEngrave::get_pixel(int x, int y) {
         fseek(this->file, this->image_array_offset + pixel_offset, SEEK_SET);
         fread(&c, 1,1,this->file);
         pixel = double(c) / 255.0;
-        this->stream->printf("DEBUG: read pixel %d, %d from bmp: %f", x, y, pixel);
+        this->stream->printf("DEBUG: read pixel %d, %d from bmp: %f\r\n", x, y, pixel);
     } else {
         // Act depending on command
         unsigned short check_sum = get_checksum( this->filename );

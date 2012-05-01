@@ -354,10 +354,9 @@ double LaserEngrave::get_pixel(int x, int y) {
     }
 
     pixel = max(min(pixel,1.0),0.0);
-    if(pixel < 1.0) // a value of white should always be true white
+    pixel *= pixel; // logify!
+    if(pixel < 1.0) // 100% white should always be 100% white
         pixel = this->engrave_brightness + pixel * (1.0-this->engrave_brightness) * this->engrave_contrast;
-    // logify!
-    pixel *= pixel;
     //this->stream->printf("DEBUG: get_pixel(%d, %d) returned: %f\r\n", x, y, pixel);
     return pixel;
 }

@@ -85,8 +85,8 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
         this->image_height = gcode.get_value('Y');
     this->image_bpp = 8; // not yet used
 
-    // Read fileheader
     if(this->file != NULL) {
+        // Read fileheader
         fseek(this->file, 10, SEEK_SET);
         fread(&this->image_array_offset, 4,1,this->file);
         fseek(this->file, 18, SEEK_SET);
@@ -99,6 +99,12 @@ void LaserEngrave::laser_engrave_command( string parameters, StreamOutput* strea
             fclose(this->file);
             this->file = NULL;
         }
+
+        // Calculated values
+        this->bytes_per_pixel = this->image_bpp / 8; // should always equal 1 right now
+        this->bytes_per_row = this->image_width * this->bytes_per_pixel;
+        this->bytes_per_row += this->bytes_per_row % 4 == 0 ? 0 : 4 - this->bytes_per_row % 4; // pad to multiple of 4 bytes
+
         this->stream->printf("DEBUG: loaded %s, %dx%d pixels, %d bpp\r\n", this->filename.c_str(), this->image_width, this->image_height, this->image_bpp);
     }
 
@@ -320,12 +326,10 @@ double LaserEngrave::get_pixel(int x, int y) {
 
     if(this->file != NULL) {
         char c;
-        int bytes_per_row = (this->image_width * this->image_bpp) / 8;
-        bytes_per_row += bytes_per_row % 4 == 0 ? 0 : 4 - bytes_per_row % 4;
-        int row = this->image_height-1 - y;
-        int pixel_offset = row * bytes_per_row + x;
-        fseek(this->file, this->image_array_offset + pixel_offset, SEEK_SET);
-        fread(&c, 1,1,this->file);
+        int row = this->image_height-1 - y; // invert the y axis since bmp's are stored upside down
+        int pixel_offset = this->image_array_offset + row * this->bytes_per_row + x * this->bytes_per_pixel;
+        fseek(this->file, pixel_offset, SEEK_SET);
+        fread(&c, this->bytes_per_pixel, 1, this->file);
         pixel = double(c) / 255.0;
     } else {
         // Act depending on command

@@ -65,6 +65,8 @@ class LaserEngrave : public Module{
         int  image_height;
         short  image_bpp;
         int  image_array_offset;
+        int  bytes_per_pixel;
+        int  bytes_per_row;
         int  current_scan_line;
         int  current_pixel_row;
         int  current_pixel_col;

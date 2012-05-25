@@ -1,8 +1,8 @@
 #ifndef PIN_H
 #define PIN_H
 
-#include "mbed.h" //Required for LPC_GPIO* . can probably be found in one othe the files mbed.h includes. TODO
-//#include "../gcc4mbed/external/mbed/LPC1768/LPC17xx.h"
+#include <stdlib.h>
+#include "libs/LPC17xx/sLPC17xx.h" // smoothed mbed.h lib
 #include "libs/Kernel.h"
 #include "libs/utils.h"
 #include <string>
@@ -40,16 +40,11 @@ class Pin{
         }
 
         inline bool get(){
-            if( this->inverting ){
-               return ~(( this->port->FIOPIN >> this->pin ) & 1);
-            }else{
-               return  (( this->port->FIOPIN >> this->pin ) & 1);
-            }
+            return this->inverting ^ (( this->port->FIOPIN >> this->pin ) & 1);
         }
 
         inline void set(bool value){
-            // TODO : This should be bitmath 
-            if( this->inverting ){ value = !value; }
+            value = this->inverting ^ value;
             if( value ){
                 this->port->FIOSET = 1 << this->pin;
             }else{

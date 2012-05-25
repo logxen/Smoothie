@@ -12,6 +12,7 @@ using namespace std;
 #include "../communication/utils/Gcode.h"
 #include "libs/Module.h"
 #include "libs/Kernel.h"
+#include "wait_api.h" // mbed lib
 #include "Block.h"
 #include "Planner.h"
 #include "Player.h" 
@@ -40,7 +41,8 @@ void Planner::append_block( int target[], double feed_rate, double distance, dou
    
     // Stall here if the queue is ful
     while( this->kernel->player->queue.size() >= this->kernel->player->queue.capacity()-2 ){ 
-        wait_us(500); 
+        wait_us(500);
+        this->kernel->call_event(ON_IDLE);
     }
 
     Block* block = this->kernel->player->new_block();

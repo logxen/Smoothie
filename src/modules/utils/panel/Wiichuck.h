@@ -138,6 +138,12 @@ public:
     void init_wmp() {
     }
 
+    void activate_wmp() {
+    }
+
+    void deactivate_wmp() {
+    }
+
     void poll_wmp() {
     }
 

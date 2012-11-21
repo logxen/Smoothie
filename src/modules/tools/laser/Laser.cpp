@@ -19,6 +19,7 @@ Laser::Laser() {
 void Laser::on_module_loaded() {
     if( !this->kernel->config->value( laser_module_enable_checksum )->by_default(false)->as_bool() ){ return; }
   	//register for events
+    this->register_for_event(ON_CONFIG_RELOAD);
     this->register_for_event(ON_GCODE_EXECUTE);
     this->register_for_event(ON_SPEED_CHANGE);
     this->register_for_event(ON_PLAY);

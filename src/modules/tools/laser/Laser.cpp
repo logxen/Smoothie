@@ -37,8 +37,8 @@ void Laser::on_config_reload(void* argument) {
         pin->port_number = 2;
         pin->pin = 5;
     }
-  	this->laser_max_power = this->kernel->config->value(laser_module_max_power_checksum)->by_default(0.3)->as_number() ;
-  	this->laser_tickle_power = this->kernel->config->value(laser_module_tickle_power_checksum)->by_default(0)->as_number() ;
+    this->laser_max_power = this->kernel->config->value(laser_module_max_power_checksum)->by_default(0.3)->as_number() ;
+    this->laser_tickle_power = this->kernel->config->value(laser_module_tickle_power_checksum)->by_default(0)->as_number() ;
 
     if(this->laser_pin != 0) delete this->laser_pin;
     this->laser_pin = new mbed::PwmOut((PinName)(LPC_GPIO0_BASE + pin->port_number*32 + pin->pin));

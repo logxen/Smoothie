@@ -7,6 +7,7 @@
 #ifndef WIICHUCK_H
 #define WIICHUCK_H
 #include "mbed.h" // mbed.h lib
+#include "libs/MODI2C.h"
 
 using namespace std;
 #include <vector>
@@ -28,11 +29,11 @@ public:
     Wiichuck(PinName sda, PinName scl, int frequency = 10000){
         this->i2c_mine = true;
 
-        this->i2c = new mbed::I2C(sda, scl);   
+        this->i2c = new MODI2C(sda, scl);   
         this->i2c->frequency(frequency);
     }
 
-    Wiichuck(I2C* i2c){
+    Wiichuck(MODI2C* i2c){
         this->i2c_mine = false;
 
         this->i2c = i2c;
@@ -161,7 +162,7 @@ public:
     bool data_ready = false;
     char data_buf[6];
     int device_type = -1;
-    mbed::I2C* i2c;
+    MODI2C* i2c;
 };
 
 

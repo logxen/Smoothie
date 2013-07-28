@@ -6,9 +6,9 @@
 */
 #ifndef I2CBANG_H
 #define I2CBANG_H
-#include "mbed.h" // mbed.h lib
+#include "libs/MODI2C.h" // mbed.h lib
 
-void i2cbang_init(I2C i2c){
+void i2cbang_init(MODI2C i2c){
     const int addr = 0x40;
     char cmd[2];
     cmd[0] = 0x1B;
@@ -20,7 +20,7 @@ void i2cbang_init(I2C i2c){
     wait_ms(1);
 }
 
-void i2cbang_start(I2C i2c){
+void i2cbang_start(MODI2C i2c){
     const int addr = 0x40;
     char cmd[2];
     cmd[0] = 0x0B;
@@ -32,7 +32,7 @@ void i2cbang_start(I2C i2c){
     wait_ms(1);
 }
 
-void i2cbang_stop(I2C i2c){
+void i2cbang_stop(MODI2C i2c){
     const int addr = 0x40;
     char cmd[2];
     cmd[0] = 0x0B;
@@ -44,7 +44,7 @@ void i2cbang_stop(I2C i2c){
     wait_ms(1);
 }
 
-void i2cbang_writebit(I2C i2c, bool bit){
+void i2cbang_writebit(MODI2C i2c, bool bit){
     const int addr = 0x40;
     char cmd[2];
     cmd[0] = 0x0B;
@@ -79,7 +79,7 @@ void i2cbang_writebit(I2C i2c, bool bit){
     wait_ms(1);
 }
 
-char i2cbang_readbit(I2C i2c){
+char i2cbang_readbit(MODI2C i2c){
     const int addr = 0x40;
     char cmd[2];
     char res;
@@ -111,7 +111,7 @@ char i2cbang_readbit(I2C i2c){
     return res;
 }
 
-int i2cbang_write(I2C i2c, char c){
+int i2cbang_write(MODI2C i2c, char c){
     for (int i=0;i<8;i++){
         i2cbang_writebit(i2c, (c&0x80) > 0);
         c<<=1;
@@ -154,7 +154,7 @@ int i2cbang_write(I2C i2c, char c){
 */
 }
 
-char i2cbang_read(I2C i2c, bool ack){
+char i2cbang_read(MODI2C i2c, bool ack){
     char res = 0;
     for(int i=0;i<8;i++){
         res<<=1;

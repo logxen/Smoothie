@@ -18,6 +18,7 @@ Much of this was copied from LiquidTWI2
 #include "libs/Pin.h"
 #include "Button.h"
 #include "smoothiepanel/Wiichuck.h"
+#include "libs/MODI2C.h"
 
 using namespace std;
 #include <vector>
@@ -118,7 +119,7 @@ class Smoothiepanel : public LcdBase {
         char backledval;
         uint8_t _numlines,_currline;
 //        uint16_t _backlightBits; // only for MCP23017
-        mbed::I2C* i2c;
+        MODI2C* i2c;
 
         Pin interrupt_pin;
         Pin encoder_a_pin;

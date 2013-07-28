@@ -39,6 +39,7 @@ void PanelScreen::refresh_screen(bool clear){
     if(clear) this->panel->lcd->clear(); 
     for(uint16_t i = this->panel->menu_start_line; i < this->panel->menu_start_line + min( this->panel->menu_rows, this->panel->menu_lines ); i++ ){
         this->panel->lcd->setCursor(0, i - this->panel->menu_start_line );
+        wait_ms(1);
         this->display_menu_line(i);
     }
 }

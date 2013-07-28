@@ -181,7 +181,7 @@ int i2c_stop(i2c_t *obj) {
 		timeout ++;
 		if (timeout > 100000){
             i2c_timed_out++;
-            return 1;
+            //return 1;
         }
 	}
 	return 0;

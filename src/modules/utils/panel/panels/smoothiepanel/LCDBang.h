@@ -9,7 +9,7 @@
 #include "mbed.h" // mbed.h lib
 #include "I2CBang.h"
 
-void lcdbang_writenibble(I2C i2c, char c, bool command = false){
+void lcdbang_writenibble(MODI2C i2c, char c, bool command = false){
     const int addr = 0x40;
     char cmd[2];
     c <<= 4;
@@ -27,7 +27,7 @@ void lcdbang_writenibble(I2C i2c, char c, bool command = false){
 //    wait_ms(1);
 }
 
-void lcdbang_write(I2C i2c, char c, bool command = false){
+void lcdbang_write(MODI2C i2c, char c, bool command = false){
     if(command){
         lcdbang_writenibble(i2c, c, command);
     }else{
@@ -36,7 +36,7 @@ void lcdbang_write(I2C i2c, char c, bool command = false){
     }
 }
 
-void lcdbang_init(I2C i2c){
+void lcdbang_init(MODI2C i2c){
     const int addr = 0x40;
     char cmd[2];
     cmd[0] = 0x1C;
@@ -77,13 +77,13 @@ void lcdbang_init(I2C i2c){
     wait_ms(1);
 }
 
-void lcdbang_print(I2C i2c, const char* msg){
+void lcdbang_print(MODI2C i2c, const char* msg){
     for(int i=0;msg[i];i++){
         lcdbang_write(i2c, msg[i]);
     }
 }
 
-void lcdbang_contrast(I2C i2c, int contrast){
+void lcdbang_contrast(MODI2C i2c, int contrast){
     // set dac pins as output and set dac
     i2cbang_init(i2c);
     i2cbang_start(i2c);

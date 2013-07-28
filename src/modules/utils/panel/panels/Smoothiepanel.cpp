@@ -26,13 +26,13 @@ Smoothiepanel::Smoothiepanel() {
     // I2C com
     int i2c_pins = THEKERNEL->config->value(panel_checksum, i2c_pins_checksum)->by_default(3)->as_number();
     if(i2c_pins == 0){
-        this->i2c = new mbed::I2C(P0_0, P0_1);
+        this->i2c = new MODI2C(P0_0, P0_1);
     }else if(i2c_pins == 1){
-        this->i2c = new mbed::I2C(P0_10, P0_11);
+        this->i2c = new MODI2C(P0_10, P0_11);
     }else if(i2c_pins == 2){
-        this->i2c = new mbed::I2C(P0_19, P0_20);
+        this->i2c = new MODI2C(P0_19, P0_20);
     }else{ // 3, default
-        this->i2c = new mbed::I2C(P0_27, P0_28);
+        this->i2c = new MODI2C(P0_27, P0_28);
     }
     this->wii = new Wiichuck(this->i2c);
 
@@ -59,7 +59,7 @@ Smoothiepanel::~Smoothiepanel() {
     delete this->i2c;
 }
 
-void pca9634_init(I2C i2c, int address){
+void pca9634_init(MODI2C i2c, int address){
     const int leds = PCA9634_ADDRESS | (address & 0x0E);
     char cmd[2];
 
@@ -77,7 +77,7 @@ void pca9634_init(I2C i2c, int address){
     i2c.write(leds, cmd, 2);
 }
 
-void pca9634_setLed(I2C *i2c, int address, char led, char val){
+void pca9634_setLed(MODI2C *i2c, int address, char led, char val){
     const int leds = PCA9634_ADDRESS | (address & 0x0E);
     char cmd[2];
 
@@ -86,7 +86,7 @@ void pca9634_setLed(I2C *i2c, int address, char led, char val){
     i2c->write(leds, cmd, 2);
 }
 
-void pca9505_write(I2C *i2c, int address, char reg, char val){
+void pca9505_write(MODI2C *i2c, int address, char reg, char val){
     const int expander = PCA9505_ADDRESS | (address & 0x0E);
     char cmd[2];
 
@@ -95,7 +95,7 @@ void pca9505_write(I2C *i2c, int address, char reg, char val){
     i2c->write(expander, cmd, 2);
 }
 
-char pca9505_read(I2C *i2c, int address, char reg){
+char pca9505_read(MODI2C *i2c, int address, char reg){
     const int expander = PCA9505_ADDRESS | (address & 0x0E);
     char cmd[1];
 
@@ -107,24 +107,27 @@ char pca9505_read(I2C *i2c, int address, char reg){
 
 void Smoothiepanel::init(){
     // init lcd and buzzer
-    lcdbang_init(*this->i2c);
+//    lcdbang_init(*this->i2c);
 //    lcdbang_print(*this->i2c, " Smoothiepanel Beta - design by Logxen -");
-    lcdbang_contrast(*this->i2c, this->lcd_contrast);
+//    lcdbang_contrast(*this->i2c, this->lcd_contrast);
 
     pca9634_init(*this->i2c, this->i2c_address);
+    wait_ms(1);
     setEncoderByHue(this->encoder_hue);
-    setBacklightColor(this->backlight_red, this->backlight_green, this->backlight_blue);
-    setPlayLED(this->playledval);
-    setBackLED(this->backledval);
+    wait_ms(1000);
+//    setBacklightColor(this->backlight_red, this->backlight_green, this->backlight_blue);
+//    setPlayLED(this->playledval);
+//    setBackLED(this->backledval);
 
-    pca9505_write(this->i2c, this->i2c_address, 0x18, 0xAA); // enable leds for button/led wing on port0
-    pca9505_write(this->i2c, this->i2c_address, 0x08, 0x01); // enable leds for button/led wing on port0
+//    pca9505_write(this->i2c, this->i2c_address, 0x18, 0xAA); // enable leds for button/led wing on port0
+//    pca9505_write(this->i2c, this->i2c_address, 0x08, 0x01); // enable leds for button/led wing on port0
 //    wait_us(3000);
 //    this->clear();
 }
 
 void Smoothiepanel::setLed(int led, bool on){
     // LED turns on when bit is cleared
+/*
     char saved = pca9505_read(this->i2c, this->i2c_address, 0x08);
     if(on) {
         switch(led) {
@@ -139,6 +142,7 @@ void Smoothiepanel::setLed(int led, bool on){
             case LED_BED_ON: pca9505_write(this->i2c, this->i2c_address, 0x08, saved & ~0x04); break; // off
         }
     }
+*/
 }
 
 void Smoothiepanel::setLedBrightness(int led, int val){
@@ -182,6 +186,7 @@ uint8_t Smoothiepanel::readButtons(void) {
     if((cmd[0] & 0x10) > 0) button_bits |= BUTTON_SELECT; // encoder click
     if((cmd[0] & 0x02) > 0) button_bits |= BUTTON_LEFT; // back button
     if((cmd[0] & 0x01) > 0) button_bits |= BUTTON_PAUSE; // play button
+/*
     if((cmd[0] & 0x20) > 0){ // wii accessory connected
         if(!this->wii_connected){
             this->wii->init_device();
@@ -215,7 +220,7 @@ uint8_t Smoothiepanel::readButtons(void) {
             }else this->wii_connected = false;
         }
     }else this->wii_connected = false;
-
+*/
     // update the encoder color
     if(this->encoder_changed){
         if(this->encoder_hue > 360) this->encoder_hue -= 360;
@@ -246,7 +251,7 @@ void Smoothiepanel::clear()
 {
     command(LCD_CLEARDISPLAY);  // clear display, set cursor position to zero
 //#ifndef USE_FASTMODE
-//    wait_ms(50);  // this command takes a long time!
+    wait_ms(50);  // this command takes a long time!
 //#endif
 }
 
@@ -254,7 +259,7 @@ void Smoothiepanel::home()
 {
     command(LCD_RETURNHOME);  // set cursor position to zero
 //#ifndef USE_FASTMODE
-//    wait_us(2000);  // this command takes a long time!
+    wait_us(2000);  // this command takes a long time!
 //#endif
 }
 

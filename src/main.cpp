@@ -11,6 +11,7 @@
 #include "modules/tools/spindle/Spindle.h"
 #include "modules/tools/extruder/ExtruderMaker.h"
 #include "modules/tools/temperaturecontrol/TemperatureControlPool.h"
+#include "modules/tools/inkjet/Inkjet.h"
 #include "modules/tools/endstops/Endstops.h"
 #include "modules/tools/zprobe/ZProbe.h"
 #include "modules/tools/scaracal/SCARAcal.h"
@@ -166,6 +167,9 @@ void init() {
     #endif
     #ifndef NO_TOOLS_SPINDLE
     kernel->add_module( new Spindle() );
+    #endif
+    #ifndef NO_TOOLS_INKJET
+    kernel->add_module( new Inkjet() );
     #endif
     #ifndef NO_UTILS_PANEL
     kernel->add_module( new Panel() );

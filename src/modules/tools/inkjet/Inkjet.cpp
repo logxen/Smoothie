@@ -36,10 +36,10 @@
 #define cartridge_three_pin_checksum    CHECKSUM("cartridge_three_pin")
 #define cartridge_four_pin_checksum     CHECKSUM("cartridge_four_pin")
 #define cartridge_five_pin_checksum     CHECKSUM("cartridge_five_pin")
-#define a_pin_checksum                  CHECKSUM("a_pin")
-#define b_pin_checksum                  CHECKSUM("b_pin")
-#define c_pin_checksum                  CHECKSUM("c_pin")
-#define d_pin_checksum                  CHECKSUM("d_pin")
+#define nozzle_pin_a_checksum           CHECKSUM("nozzle_pin_a")
+#define nozzle_pin_b_checksum           CHECKSUM("nozzle_pin_b")
+#define nozzle_pin_c_checksum           CHECKSUM("nozzle_pin_c")
+#define nozzle_pin_d_checksum           CHECKSUM("nozzle_pin_d")
 #define nozzle_on_time_checksum         CHECKSUM("nozzle_on_time")
 #define nozzle_off_time_checksum        CHECKSUM("nozzle_off_time")
 #define cartridge_off_time_checksum     CHECKSUM("cartridge_off_time")
@@ -75,10 +75,10 @@ void Inkjet::on_module_loaded()
     if (num_cartridges > 4) this->cartridge_fire_pins[4]->from_string(THEKERNEL->config->value(inkjet_checksum, cartridge_four_pin_checksum)->by_default("nc")->as_string())->as_output();
     if (num_cartridges > 5) this->cartridge_fire_pins[5]->from_string(THEKERNEL->config->value(inkjet_checksum, cartridge_five_pin_checksum)->by_default("nc")->as_string())->as_output();
 
-    this->nozzle_pin_a.from_string(THEKERNEL->config->value(inkjet_checksum, a_pin_checksum)->by_default("nc")->as_string())->as_output();
-    this->nozzle_pin_a.from_string(THEKERNEL->config->value(inkjet_checksum, b_pin_checksum)->by_default("nc")->as_string())->as_output();
-    this->nozzle_pin_a.from_string(THEKERNEL->config->value(inkjet_checksum, c_pin_checksum)->by_default("nc")->as_string())->as_output();
-    this->nozzle_pin_a.from_string(THEKERNEL->config->value(inkjet_checksum, d_pin_checksum)->by_default("nc")->as_string())->as_output();
+    this->nozzle_pin_a.from_string(THEKERNEL->config->value(inkjet_checksum, nozzle_pin_a_checksum)->by_default("nc")->as_string())->as_output();
+    this->nozzle_pin_b.from_string(THEKERNEL->config->value(inkjet_checksum, nozzle_pin_b_checksum)->by_default("nc")->as_string())->as_output();
+    this->nozzle_pin_c.from_string(THEKERNEL->config->value(inkjet_checksum, nozzle_pin_c_checksum)->by_default("nc")->as_string())->as_output();
+    this->nozzle_pin_d.from_string(THEKERNEL->config->value(inkjet_checksum, nozzle_pin_d_checksum)->by_default("nc")->as_string())->as_output();
 
     this->nozzle_on_time = THEKERNEL->config->value(inkjet_checksum, nozzle_on_time_checksum)->by_default(6)->as_number();
     this->nozzle_off_time = THEKERNEL->config->value(inkjet_checksum, nozzle_off_time_checksum)->by_default(800)->as_number();
